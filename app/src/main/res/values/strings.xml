@@ -93,4 +93,7 @@
     </string>
     <string name="action_settings">Settings</string>
     <string name="textview">TextView</string>
+    <string name="now_playing">Now Playing:</string>
+    <string name="button">Shuffle</string>
+    <string name="shuffle">Shuffle</string>
 </resources>
