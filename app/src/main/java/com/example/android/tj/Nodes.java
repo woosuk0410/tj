@@ -7,8 +7,10 @@ import android.widget.ArrayAdapter;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class Nodes {
     class Node {
@@ -31,8 +33,8 @@ class Nodes {
                 "/tj").listFiles();
         nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
                 (LinkedList::new));
-        adapter = new ArrayAdapter<>(ctx, R.layout.activity_listview, nodes.stream().map(n -> n
-                .file.getName()).collect(Collectors.toList()));
+        nodes.sort(Comparator.comparing(n -> n.file.getName()));
+        adapter = new ArrayAdapter<>(ctx, R.layout.activity_listview, new LinkedList<>());
 
         player = new MediaPlayer();
     }
@@ -41,7 +43,9 @@ class Nodes {
         Node head = nodes.remove();
         nodes.add(head);
         adapter.clear();
-        adapter.addAll(nodes.stream().map(n -> n.file.getName()).collect(Collectors.toList()));
+        adapter.addAll(IntStream.range(1, nodes.size() + 1).mapToObj(i -> ((Integer) i).toString() +
+                ". " +
+                nodes.get(i - 1).file.getName()).collect(Collectors.toList()));
         adapter.notifyDataSetChanged();
         return head;
     }

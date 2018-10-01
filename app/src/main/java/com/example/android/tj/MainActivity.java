@@ -10,6 +10,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.Collections;
+import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,7 +41,10 @@ public class MainActivity extends AppCompatActivity {
         ListView lv = findViewById(com.example.android.tj.R.id.list_files);
         lv.setAdapter(nodes.adapter);
 
-        lv.setOnItemClickListener((parent, view, position, id) -> nodes.play(position));
+        lv.setOnItemClickListener((parent, view, position, id) -> {
+            nodes.play(position);
+            lv.smoothScrollToPosition(0);
+        });
 
 
         switch_.setChecked(true);
@@ -69,5 +73,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Nodes.player.pause();
         }
+    }
+
+    public void onSort(View view) {
+        nodes.nodes.sort(Comparator.comparing(n -> n.file.getName()));
+        nodes.play(0);
     }
 }
