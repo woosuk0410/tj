@@ -1,8 +1,14 @@
 package com.example.android.tj;
 
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -13,6 +19,18 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity {
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.d(TAG, "really " + keyCode);
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,9 +45,21 @@ public class MainActivity extends AppCompatActivity {
             handler = new Handler();
             nodes = new Nodes(this);
             init();
+
+            receiver = new BluetoothBroadcastReceiver(nodes);
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+            registerReceiver(receiver, filter);
+
+            MediaSessionCompat mediaSession = new MediaSessionCompat(this, TAG);
+            mediaSession.setCallback(new BluetoothButtonCallback(nodes));
+            mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         }
     }
 
+    private static final String TAG = "MainActivity";
     public Switch switch_;
     public SeekBar seekBar;
     public TextView nowPlaying;
@@ -37,18 +67,19 @@ public class MainActivity extends AppCompatActivity {
     private Nodes nodes;
 
 
+    private BroadcastReceiver receiver;
+
     private void init() {
         ListView lv = findViewById(com.example.android.tj.R.id.list_files);
         lv.setAdapter(nodes.adapter);
 
         lv.setOnItemClickListener((parent, view, position, id) -> {
-            nodes.play(position);
+            nodes.playFromLocation(position);
             lv.smoothScrollToPosition(0);
         });
 
-
         switch_.setChecked(true);
-        nodes.play(0);
+        nodes.next();
 
         this.runOnUiThread(new Runnable() {
             @Override
@@ -63,20 +94,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void onShuffle(View view) {
         Collections.shuffle(nodes.nodes);
-        nodes.play(0);
+        nodes.next();
     }
-
 
     public void onSwitch(View view) {
         if (switch_.isChecked()) {
-            Nodes.player.start();
+            nodes.play();
         } else {
-            Nodes.player.pause();
+            nodes.pause();
         }
     }
 
     public void onSort(View view) {
         nodes.nodes.sort(Comparator.comparing(n -> n.file.getName()));
-        nodes.play(0);
+        nodes.next();
     }
 }

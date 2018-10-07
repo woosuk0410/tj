@@ -39,26 +39,65 @@ class Nodes {
         player = new MediaPlayer();
     }
 
-    private Node next() {
-        Node head = nodes.remove();
-        nodes.add(head);
+    private void resetAdapter() {
         adapter.clear();
         adapter.addAll(IntStream.range(1, nodes.size() + 1).mapToObj(i -> ((Integer) i).toString() +
                 ". " +
                 nodes.get(i - 1).file.getName()).collect(Collectors.toList()));
         adapter.notifyDataSetChanged();
+    }
+
+    private Node forwardNode() {
+        Node head = nodes.removeFirst();
+        nodes.addLast(head);
+        resetAdapter();
         return head;
     }
 
-    void play(int startIdx) {
-        try {
+    private Node backwardNode() {
+        Node tail = nodes.removeLast();
+        nodes.addFirst(tail);
+        resetAdapter();
+        return tail;
+    }
 
+    void play() {
+        player.start();
+        Helpers.setSwitch(ctx.switch_, true);
+    }
+
+    void pause() {
+        player.pause();
+        Helpers.setSwitch(ctx.switch_, false);
+    }
+
+    void next() {
+        this.play(0, true);
+    }
+
+    void previous() {
+        this.play(0, false);
+    }
+
+    void playFromLocation(int loc) {
+        play(loc, true);
+    }
+
+    private void play(int startIdx, boolean forward) {
+        try {
             for (int i = 0; i < startIdx; i++) {
-                next();
+                if (forward) forwardNode();
+                else backwardNode();
+            }
+
+            //backward needs two more steps
+            if (!forward) {
+                backwardNode();
+                backwardNode();
             }
 
             player.reset();
-            Node n = next();
+            Node n = forwardNode();
             player.setDataSource(ctx, Uri.fromFile(n.file));
             player.prepare();
             player.start();
@@ -67,7 +106,7 @@ class Nodes {
             player.setOnCompletionListener(finishedPlayer -> {
                 try {
                     finishedPlayer.reset();
-                    Node n2 = next();
+                    Node n2 = forwardNode();
                     player.setDataSource(ctx, Uri.fromFile(n2.file));
                     player.prepare();
                     player.start();

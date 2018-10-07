@@ -2,6 +2,7 @@ package com.example.android.tj;
 
 import android.media.MediaPlayer;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 class Helpers {
@@ -29,5 +30,9 @@ class Helpers {
 
     static void setNowPlaying(TextView tv, String name) {
         tv.setText(name);
+    }
+
+    static void setSwitch(Switch sw, boolean checked) {
+        sw.setChecked(checked);
     }
 }
