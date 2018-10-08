@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -19,12 +17,6 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity {
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "really " + keyCode);
-        return super.onKeyDown(keyCode, event);
-    }
 
     @Override
     protected void onDestroy() {
@@ -44,7 +36,12 @@ public class MainActivity extends AppCompatActivity {
         if (nodes == null) {
             handler = new Handler();
             nodes = new Nodes(this);
-            init();
+
+            mediaSession = new MediaSessionCompat(this, TAG);
+            mediaSession.setCallback(new BluetoothButtonCallback(nodes));
+            mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+            mediaSession.setActive(true);
 
             receiver = new BluetoothBroadcastReceiver(nodes);
             IntentFilter filter = new IntentFilter();
@@ -52,10 +49,7 @@ public class MainActivity extends AppCompatActivity {
             filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
             registerReceiver(receiver, filter);
 
-            MediaSessionCompat mediaSession = new MediaSessionCompat(this, TAG);
-            mediaSession.setCallback(new BluetoothButtonCallback(nodes));
-            mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+            init();
         }
     }
 
@@ -68,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private BroadcastReceiver receiver;
+    MediaSessionCompat mediaSession;
 
     private void init() {
         ListView lv = findViewById(com.example.android.tj.R.id.list_files);

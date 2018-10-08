@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+
 class Nodes {
     class Node {
         File file;
@@ -21,7 +22,10 @@ class Nodes {
         }
     }
 
-    private static String TJ_DIR = "/tj";
+    private static String EXT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath();
+    private static String TJ_DIR = EXT_DIR + "/tj";
+    private static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
+
     LinkedList<Node> nodes;
     ArrayAdapter<String> adapter;
     static MediaPlayer player;
@@ -29,8 +33,7 @@ class Nodes {
 
     Nodes(MainActivity ctx) {
         this.ctx = ctx;
-        File[] files = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
-                "/tj").listFiles();
+        File[] files = new File(TJ_DIR).listFiles();
         nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
                 (LinkedList::new));
         nodes.sort(Comparator.comparing(n -> n.file.getName()));
@@ -80,6 +83,7 @@ class Nodes {
     }
 
     void playFromLocation(int loc) {
+        Helpers.setSwitch(ctx.switch_, true);
         play(loc, true);
     }
 
@@ -98,6 +102,9 @@ class Nodes {
 
             player.reset();
             Node n = forwardNode();
+
+            Helpers.setMetadata(ctx, n);
+
             player.setDataSource(ctx, Uri.fromFile(n.file));
             player.prepare();
             player.start();
@@ -112,6 +119,7 @@ class Nodes {
                     player.start();
                     Helpers.setNowPlaying(ctx.nowPlaying, n2.file.getName());
                     Helpers.setSeekBar(ctx.seekBar, player);
+                    Helpers.setMetadata(ctx, n2);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
