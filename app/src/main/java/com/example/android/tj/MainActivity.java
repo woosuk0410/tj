@@ -13,7 +13,6 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.util.Collections;
 import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity {
@@ -88,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onShuffle(View view) {
-        Collections.shuffle(nodes.nodes);
+        nodes.priorityShuffle();
         nodes.next();
     }
 
