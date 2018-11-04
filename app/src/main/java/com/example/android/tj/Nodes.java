@@ -45,7 +45,7 @@ class Nodes {
 
     private static String EXT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath();
     private static String TJ_DIR = EXT_DIR + "/tj";
-    private static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
+    static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
     private static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
 
     LinkedList<Node> nodes;
@@ -191,12 +191,14 @@ class Nodes {
                 try {
                     finishedPlayer.reset();
                     Node n2 = forwardNode();
+
+                    Helpers.setMetadata(ctx, n2);
+
                     player.setDataSource(ctx, Uri.fromFile(n2.file));
                     player.prepare();
                     player.start();
                     Helpers.setNowPlaying(ctx.nowPlaying, n2.file.getName());
                     Helpers.setSeekBar(ctx.seekBar, player);
-                    Helpers.setMetadata(ctx, n2);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

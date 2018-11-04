@@ -1,7 +1,6 @@
 package com.example.android.tj;
 
 import android.media.MediaPlayer;
-import android.support.v4.media.MediaMetadataCompat;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -37,13 +36,8 @@ class Helpers {
         sw.setChecked(checked);
     }
 
-    //TODO
-    //.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, Glide.with(ctx)
-    //.asBitmap().load(TJ_DIR_IMG + "/tj2.png").submit().get())
-    static void setMetadata(MainActivity ctx, Nodes.Node node) {
-        ctx.mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, node.file.getName())
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, "谭晶")
-                .build());
+    static void setMetadata(MainActivity activity, Nodes.Node node) {
+        MetadataUpdater updater = new MetadataUpdater(activity, node);
+        updater.run();
     }
 }
