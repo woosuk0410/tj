@@ -1,27 +1,52 @@
 package com.example.android.tj;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.util.Comparator;
+import java.util.LinkedList;
+
+import static com.example.android.tj.Constants.SERVICE_CMD;
+import static com.example.android.tj.Constants.SERVICE_RESULT;
+import static com.example.android.tj.Constants.SERVICE_RESULT_STATUS;
 
 public class MainActivity extends AppCompatActivity {
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(receiver);
-    }
+
+    private static final String TAG = "MainActivity";
+    public Switch switch_;
+    public SeekBar seekBar;
+    public TextView nowPlaying;
+    private Handler handler;
+    ArrayAdapter<String> adapter;
+
+
+    private Runnable uiUpdateCallback = new Runnable() {
+        @Override
+        public void run() {
+            sendTJServiceCmd(Constants.SERVICE_CMD_SYNC);
+            handler.postDelayed(this, 1000);
+        }
+    };
+
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String status = intent.getStringExtra(SERVICE_RESULT_STATUS);
+            updateUI(TJServiceStatus.fromJson(status));
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,75 +57,107 @@ public class MainActivity extends AppCompatActivity {
         seekBar = findViewById(com.example.android.tj.R.id.seekBar);
         nowPlaying = findViewById(R.id.now_playing);
 
-        if (nodes == null) {
-            handler = new Handler();
-            nodes = new Nodes(this);
+        sendTJServiceCmd(Constants.SERVICE_CMD_START);
 
-            mediaSession = new MediaSessionCompat(this, TAG);
-            mediaSession.setCallback(new BluetoothButtonCallback(nodes));
-            mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-            mediaSession.setActive(true);
 
-            receiver = new BluetoothBroadcastReceiver(nodes);
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-            registerReceiver(receiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+                new IntentFilter(SERVICE_RESULT));
 
-            init();
-        }
+
+        initUI();
+        initPollingThread();
     }
 
-    private static final String TAG = "MainActivity";
-    public Switch switch_;
-    public SeekBar seekBar;
-    public TextView nowPlaying;
-    private Handler handler;
-    private Nodes nodes;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
+    //TODO: more general representation for arg1
+    private void sendTJServiceCmd(int cmd, int arg1) {
+        Intent intent = new Intent(this, TJService.class);
+        intent.putExtra(SERVICE_CMD, new TJServiceCommand(cmd, arg1).toString());
+        startService(intent);
+    }
 
-    private BroadcastReceiver receiver;
-    MediaSessionCompat mediaSession;
+    private void sendTJServiceCmd(int cmd) {
+        Intent intent = new Intent(this, TJService.class);
+        intent.putExtra(SERVICE_CMD, new TJServiceCommand(cmd).toString());
+        startService(intent);
+    }
 
-    private void init() {
+    private void initUI() {
+        //switch
+        switch_.setChecked(true);
+
+        //list view
         ListView lv = findViewById(com.example.android.tj.R.id.list_files);
-        lv.setAdapter(nodes.adapter);
+        adapter = new ArrayAdapter<>(this, R.layout.activity_listview, new LinkedList<>());
+        lv.setAdapter(adapter);
 
         lv.setOnItemClickListener((parent, view, position, id) -> {
-            nodes.playFromLocation(position);
+            sendTJServiceCmd(Constants.SERVICE_CMD_PLAY_FROM, position);
             lv.smoothScrollToPosition(0);
         });
 
-        switch_.setChecked(true);
-        nodes.next();
-
-        this.runOnUiThread(new Runnable() {
+        //seek bar
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void run() {
-                if (Nodes.player.isPlaying()) {
-                    seekBar.setProgress(Nodes.player.getCurrentPosition() / 1000);
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    sendTJServiceCmd(Constants.SERVICE_CMD_SEEK, progress * 1000);
+
                 }
-                handler.postDelayed(this, 1000);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                handler.removeCallbacksAndMessages(null);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                handler.postDelayed(uiUpdateCallback, 1000);
             }
         });
     }
 
+    private void updateUI(TJServiceStatus status) {
+        //switch
+        switch_.setChecked(status.isPlaying);
+
+        //list view
+        adapter.clear();
+        adapter.addAll(status.fileNamesWithIdx);
+        adapter.notifyDataSetChanged();
+
+        //now playing
+        nowPlaying.setText(status.nowPlaying);
+
+        //seek bar
+        seekBar.setMax(status.duration / 1000);
+        seekBar.setProgress(status.currentPosition / 1000);
+    }
+
+    private void initPollingThread() {
+        handler = new Handler();
+        this.runOnUiThread(uiUpdateCallback);
+    }
+
+
     public void onShuffle(View view) {
-        nodes.priorityShuffle();
-        nodes.next();
+        sendTJServiceCmd(Constants.SERVICE_CMD_SHUFFLE);
     }
 
     public void onSwitch(View view) {
         if (switch_.isChecked()) {
-            nodes.play();
+            sendTJServiceCmd(Constants.SERVICE_CMD_PLAY);
         } else {
-            nodes.pause();
+            sendTJServiceCmd(Constants.SERVICE_CMD_PAUSE);
         }
     }
 
     public void onSort(View view) {
-        nodes.nodes.sort(Comparator.comparing(n -> n.file.getName()));
-        nodes.next();
+        sendTJServiceCmd(Constants.SERVICE_CMD_SORT);
     }
 }

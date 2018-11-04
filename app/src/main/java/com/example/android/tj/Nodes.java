@@ -1,9 +1,12 @@
 package com.example.android.tj;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
-import android.widget.ArrayAdapter;
+import android.support.v4.app.NotificationCompat;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -20,7 +23,8 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID;
 
 
 class Nodes {
@@ -49,11 +53,15 @@ class Nodes {
     private static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
 
     LinkedList<Node> nodes;
-    ArrayAdapter<String> adapter;
     static MediaPlayer player;
-    private MainActivity ctx;
+    private TJService ctx;
 
-    Nodes(MainActivity ctx) {
+    boolean hasStarted = false; // if the player finished loading the 1st resource
+
+    private MetadataUpdater metadataUpdater;
+
+
+    Nodes(TJService ctx) {
         this.ctx = ctx;
         File[] files = new File(TJ_DIR).listFiles();
         nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
@@ -99,42 +107,30 @@ class Nodes {
                     }
                 }
         );
-        adapter = new ArrayAdapter<>(ctx, R.layout.activity_listview, new LinkedList<>());
 
 
         player = new MediaPlayer();
-    }
-
-    private void resetAdapter() {
-        adapter.clear();
-        adapter.addAll(IntStream.range(1, nodes.size() + 1).mapToObj(i -> ((Integer) i).toString() +
-                ". " +
-                nodes.get(i - 1).file.getName()).collect(Collectors.toList()));
-        adapter.notifyDataSetChanged();
+        metadataUpdater = new MetadataUpdater(ctx);
     }
 
     private Node forwardNode() {
         Node head = nodes.removeFirst();
         nodes.addLast(head);
-        resetAdapter();
         return head;
     }
 
     private Node backwardNode() {
         Node tail = nodes.removeLast();
         nodes.addFirst(tail);
-        resetAdapter();
         return tail;
     }
 
     void play() {
         player.start();
-        Helpers.setSwitch(ctx.switch_, true);
     }
 
     void pause() {
         player.pause();
-        Helpers.setSwitch(ctx.switch_, false);
     }
 
     void next() {
@@ -146,7 +142,6 @@ class Nodes {
     }
 
     void playFromLocation(int loc) {
-        Helpers.setSwitch(ctx.switch_, true);
         play(loc, true);
     }
 
@@ -180,31 +175,45 @@ class Nodes {
             player.reset();
             Node n = forwardNode();
 
-            Helpers.setMetadata(ctx, n);
+            metadataUpdater.run(n);
 
             player.setDataSource(ctx, Uri.fromFile(n.file));
             player.prepare();
             player.start();
-            Helpers.setNowPlaying(ctx.nowPlaying, n.file.getName());
-            Helpers.setSeekBar(ctx.seekBar, player);
             player.setOnCompletionListener(finishedPlayer -> {
                 try {
                     finishedPlayer.reset();
                     Node n2 = forwardNode();
 
-                    Helpers.setMetadata(ctx, n2);
+                    metadataUpdater.run(n2);
 
                     player.setDataSource(ctx, Uri.fromFile(n2.file));
                     player.prepare();
                     player.start();
-                    Helpers.setNowPlaying(ctx.nowPlaying, n2.file.getName());
-                    Helpers.setSeekBar(ctx.seekBar, player);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             });
+
+            //TODO: may have a better way
+            if (!hasStarted) {
+                hasStarted = true;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    Notification getNotification() {
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this.ctx,
+                NOTIFICATION_CHANNEL_ID);
+
+        return notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeFile(Nodes.TJ_DIR_IMG + "/tj2.png"))
+                .setContentTitle(nodes.getLast().metadata.name)
+                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
     }
 }

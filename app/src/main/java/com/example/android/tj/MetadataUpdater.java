@@ -8,21 +8,19 @@ import android.support.v4.media.MediaMetadataCompat;
 class MetadataUpdater {
 
     private Handler handler;
-    private MainActivity activity;
-    private Nodes.Node node;
+    private TJService tjService;
 
-    MetadataUpdater(MainActivity activity, Nodes.Node node) {
+    MetadataUpdater(TJService tjService) {
         this.handler = new Handler();
-        this.activity = activity;
-        this.node = node;
+        this.tjService = tjService;
     }
 
-    void run() {
+    void run(Nodes.Node node) {
+        this.handler.removeCallbacksAndMessages(null);
         this.handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (Nodes.player.isPlaying()) {
-
                     MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
                     builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, node.file.getName())
                             .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, node.file
@@ -33,7 +31,7 @@ class MetadataUpdater {
                     Bitmap bitmap = BitmapFactory.decodeFile(Nodes.TJ_DIR_IMG + "/tj2.png");
                     builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
                     builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
-                    activity.mediaSession.setMetadata(builder.build());
+                    tjService.mediaSession.setMetadata(builder.build());
                 }
                 handler.postDelayed(this, 1000);
             }
