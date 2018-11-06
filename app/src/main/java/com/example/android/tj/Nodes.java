@@ -145,6 +145,10 @@ class Nodes {
         play(loc, true);
     }
 
+    void shuffle() {
+        Collections.shuffle(nodes);
+    }
+
     void priorityShuffle() {
         SortedSet<Integer> sortedKeys = new TreeSet<>((i1, i2) -> i2 - i1);
         sortedKeys.addAll(Arrays.stream(nodes.toArray()).map((n -> ((Node) n).metadata.priority))
