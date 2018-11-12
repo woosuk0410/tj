@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -79,8 +80,15 @@ class Nodes {
 
                 //match with existing nodes
                 for (Node n : nodes) {
-                    n.metadata = ml.getByHash(n.metadata.md5Hash);
+                    Optional<Metadata> metadataOp = ml.getByHash(n.metadata.md5Hash);
+                    metadataOp.ifPresent(metadata -> n.metadata = metadata);
+                    if (!metadataOp.isPresent()) {
+                        ml.metadataList.add(n.metadata);
+                    }
                 }
+                FileOutputStream fos = new FileOutputStream(metadtaFile);
+                fos.write(ml.toString().getBytes("UTF-8"));
+                fos.close();
 
             } else {
                 List<Metadata> list = Arrays.stream(nodes.toArray()).map(node -> ((Node) node)

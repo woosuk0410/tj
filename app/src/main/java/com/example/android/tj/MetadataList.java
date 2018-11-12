@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MetadataList {
@@ -20,9 +21,15 @@ public class MetadataList {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this);
     }
 
-    Metadata getByHash(String hash) {
-        return metadataList.stream().filter(metadata -> metadata.md5Hash.equals(hash)).collect
-                (Collectors.toList()).get(0);
+    Optional<Metadata> getByHash(String hash) {
+        List<Metadata> matches = metadataList.stream().filter(metadata -> metadata.md5Hash.equals
+                (hash)).collect
+                (Collectors.toList());
+        if (matches.size() == 0) {
+            return Optional.empty();
+        } else {
+            return Optional.of(matches.get(0));
+        }
     }
 }
 
