@@ -24,7 +24,6 @@ import static com.example.android.tj.Constants.SERVICE_RESULT_STATUS;
 public class MainActivity extends AppCompatActivity {
 
 
-    private static final String TAG = "MainActivity";
     public Switch switch_;
     public SeekBar seekBar;
     public TextView nowPlaying;
@@ -53,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(com.example.android.tj.R.layout.activity_main);
         switch_ = findViewById(com.example.android.tj.R.id.switch1);
-
         seekBar = findViewById(com.example.android.tj.R.id.seekBar);
         nowPlaying = findViewById(R.id.now_playing);
 
@@ -99,6 +97,13 @@ public class MainActivity extends AppCompatActivity {
         lv.setOnItemClickListener((parent, view, position, id) -> {
             sendTJServiceCmd(Constants.SERVICE_CMD_PLAY_FROM, position);
             lv.smoothScrollToPosition(0);
+        });
+
+        //now playing
+        nowPlaying.setOnLongClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(), FrameActivity.class);
+            startActivity(intent);
+            return true;
         });
 
         //seek bar

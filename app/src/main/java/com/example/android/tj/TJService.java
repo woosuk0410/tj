@@ -139,7 +139,8 @@ public class TJService extends Service {
         int curPos = Nodes.player.getCurrentPosition();
         String nowPlaying = nodes.nodes.getLast().file.getName();
         boolean isPlaying = Nodes.player.isPlaying();
-        return new TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying);
+        String md5 = nodes.nodes.getLast().metadata.md5Hash;
+        return new TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5);
     }
 
     @Override

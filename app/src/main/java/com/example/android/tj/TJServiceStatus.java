@@ -12,15 +12,17 @@ class TJServiceStatus {
     int duration;
     int currentPosition;
     boolean isPlaying;
+    String md5;
 
 
     TJServiceStatus(List<String> fileNamesWithIdx, int duration, int currentPosition, String
-            nowPlaying, boolean isPlaying) {
+            nowPlaying, boolean isPlaying, String md5) {
         this.fileNamesWithIdx = fileNamesWithIdx;
         this.duration = duration;
         this.currentPosition = currentPosition;
         this.nowPlaying = nowPlaying;
         this.isPlaying = isPlaying;
+        this.md5 = md5;
     }
 
     @NonNull

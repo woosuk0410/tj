@@ -28,6 +28,11 @@
             android:name=".TJService"
             android:enabled="true"
             android:exported="false" />
+
+        <activity
+            android:name=".FrameActivity"
+            android:label="@string/title_activity_frame"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

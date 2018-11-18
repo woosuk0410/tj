@@ -98,4 +98,10 @@
     <string name="shuffle">Shuffle</string>
     <string name="sort">Sort</string>
     <string name="pshuffle">PShuffle</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_frame">FrameActivity</string>
+    <string name="show_frames_dynamically">show frames dynamically</string>
 </resources>

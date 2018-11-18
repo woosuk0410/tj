@@ -17,10 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -48,7 +50,7 @@ class Nodes {
 
     private static String EXT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath();
     private static String TJ_DIR = EXT_DIR + "/tj";
-    private static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
+    static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
     private static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
 
     LinkedList<Node> nodes;
@@ -65,6 +67,9 @@ class Nodes {
         File[] files = new File(TJ_DIR).listFiles();
         nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
                 (LinkedList::new));
+
+        //remove duplicated nodes
+        this.deDuplicate();
 
         //read from/write to metadata
         try {
@@ -106,8 +111,19 @@ class Nodes {
 
 
         player = new MediaPlayer();
+    }
 
-
+    private void deDuplicate() {
+        Set<String> s = new HashSet<>();
+        List<Node> toRemove = new LinkedList<>();
+        for (Node n : nodes) {
+            if (s.contains(n.metadata.md5Hash)) {
+                toRemove.add(n);
+            } else {
+                s.add(n.metadata.md5Hash);
+            }
+        }
+        nodes.removeAll(toRemove);
     }
 
     private Node forwardNode() {
