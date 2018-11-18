@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -90,18 +89,16 @@ public class TJService extends Service {
         mediaMetadataHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Bitmap bitmap = BitmapFactory.decodeFile(nodes.imageFilesPaths.get(0));
-
 //                Log.w(TAG, "here service initMediaMetadataHandler");
 
-                Nodes.Node currentNode = nodes.nodes.getLast();
+                Bitmap bitmap = nodes.getBitMap();
 
                 // MediaMetadataCompat
                 MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-                builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentNode.file
+                builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, nodes.currentFile()
                         .getName())
-                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentNode.file
-                                .getName())
+                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, nodes
+                                .currentFile().getName())
                         .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, "谭晶")
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, Nodes.player
                                 .getDuration())

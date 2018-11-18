@@ -1,12 +1,12 @@
 package com.example.android.tj;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationManager;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.v4.app.NotificationCompat;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -24,8 +24,6 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
-import static com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID;
 
 
 class Nodes {
@@ -55,20 +53,18 @@ class Nodes {
 
     LinkedList<Node> nodes;
     static MediaPlayer player;
-    private TJService ctx;
-    List<String> imageFilesPaths;
+    private TJService tjService;
+    private TJNotification tjNotification;
 
     boolean hasStarted = false; // if the player finished loading the 1st resource
 
     Nodes(TJService ctx) {
-        this.ctx = ctx;
+        this.tjService = ctx;
+        this.tjNotification = new TJNotification(this, ctx);
+
         File[] files = new File(TJ_DIR).listFiles();
         nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
                 (LinkedList::new));
-
-        this.imageFilesPaths = Arrays.stream(new File(TJ_DIR_IMG).listFiles()).map(File
-                ::getAbsolutePath).collect(Collectors.toList());
-
 
         //read from/write to metadata
         try {
@@ -106,19 +102,12 @@ class Nodes {
             System.exit(1);
         }
 
-
-        //priority sort
-        nodes.sort((n1, n2) -> {
-                    if (n2.metadata.priority == n1.metadata.priority) {
-                        return n1.file.getName().compareTo(n2.file.getName());
-                    } else {
-                        return n2.metadata.priority - n1.metadata.priority;
-                    }
-                }
-        );
+        this.priorityShuffle();
 
 
         player = new MediaPlayer();
+
+
     }
 
     private Node forwardNode() {
@@ -171,6 +160,14 @@ class Nodes {
         }
     }
 
+    private Node currentNode() {
+        return nodes.getLast();
+    }
+
+    File currentFile() {
+        return currentNode().file;
+    }
+
     private void play(int startIdx, boolean forward) {
         try {
             for (int i = 0; i < startIdx; i++) {
@@ -187,7 +184,7 @@ class Nodes {
             player.reset();
             Node n = forwardNode();
 
-            player.setDataSource(ctx, Uri.fromFile(n.file));
+            player.setDataSource(tjService, Uri.fromFile(n.file));
             player.prepare();
             player.start();
             player.setOnCompletionListener(finishedPlayer -> {
@@ -195,7 +192,7 @@ class Nodes {
                     finishedPlayer.reset();
                     Node n2 = forwardNode();
 
-                    player.setDataSource(ctx, Uri.fromFile(n2.file));
+                    player.setDataSource(tjService, Uri.fromFile(n2.file));
                     player.prepare();
                     player.start();
                 } catch (Exception e) {
@@ -213,21 +210,21 @@ class Nodes {
     }
 
     Notification getNotification() {
-        Collections.shuffle(this.imageFilesPaths);
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this.ctx,
-                NOTIFICATION_CHANNEL_ID);
+        return tjNotification.getNotification();
+    }
 
-        return notificationBuilder
-                .setStyle(
-                        new android.support.v4.media.app.NotificationCompat.MediaStyle()
-                                .setMediaSession(this.ctx.mediaSession.getSessionToken())
-                                .setShowActionsInCompactView(0, 1, 2))
-                .setSmallIcon(R.mipmap.ic_launcher_foreground)
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setLargeIcon(BitmapFactory.decodeFile(this.imageFilesPaths.get(0)))
-                .setContentTitle(nodes.getLast().metadata.name)
-                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .build();
+    Bitmap getBitMap() {
+        Bitmap bitmap = BitmapFactory.decodeFile(TJ_DIR_IMG + "/tj2.png");
+
+        String hash = currentNode().metadata.md5Hash;
+        int curPos = Nodes.player.getCurrentPosition();
+        @SuppressLint("DefaultLocale")
+        String frameFile = String.format("%s-%03d.jpg", hash, curPos / 1000 / 5 + 1);
+        String fullPath = TJ_DIR_IMG + "/" + frameFile;
+        File f = new File(fullPath);
+        if (f.exists()) {
+            bitmap = BitmapFactory.decodeFile(fullPath);
+        }
+        return bitmap;
     }
 }
