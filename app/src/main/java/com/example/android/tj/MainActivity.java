@@ -154,6 +154,11 @@ public class MainActivity extends AppCompatActivity {
         sendTJServiceCmd(Constants.SERVICE_CMD_SHUFFLE);
     }
 
+    public void onNowPlayingClick(View view) {
+        ListView lv = findViewById(com.example.android.tj.R.id.list_files);
+        lv.setSelection(0);
+    }
+
     public void onSwitch(View view) {
         if (switch_.isChecked()) {
             sendTJServiceCmd(Constants.SERVICE_CMD_PLAY);

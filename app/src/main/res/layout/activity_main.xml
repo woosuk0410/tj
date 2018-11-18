@@ -37,25 +37,25 @@
         android:id="@+id/seekBar"
         android:layout_width="368dp"
         android:layout_height="29dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/now_playing"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.562"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.753" />
+        app:layout_constraintVertical_bias="0.732" />
 
     <TextView
         android:id="@+id/now_playing"
-        android:layout_width="368dp"
-        android:layout_height="59dp"
+        android:layout_width="374dp"
+        android:layout_height="56dp"
+        android:onClick="onNowPlayingClick"
         android:text="@string/now_playing"
         android:textAlignment="center"
         android:textColor="@color/colorPrimary"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/list_files"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/switch1"
         app:layout_constraintVertical_bias="0.879" />
