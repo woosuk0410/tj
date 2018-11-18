@@ -50,23 +50,24 @@ class Nodes {
 
     private static String EXT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath();
     private static String TJ_DIR = EXT_DIR + "/tj";
-    static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
+    private static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
     private static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
 
     LinkedList<Node> nodes;
     static MediaPlayer player;
     private TJService ctx;
+    List<String> imageFilesPaths;
 
     boolean hasStarted = false; // if the player finished loading the 1st resource
-
-    private MetadataUpdater metadataUpdater;
-
 
     Nodes(TJService ctx) {
         this.ctx = ctx;
         File[] files = new File(TJ_DIR).listFiles();
         nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
                 (LinkedList::new));
+
+        this.imageFilesPaths = Arrays.stream(new File(TJ_DIR_IMG).listFiles()).map(File
+                ::getAbsolutePath).collect(Collectors.toList());
 
 
         //read from/write to metadata
@@ -118,7 +119,6 @@ class Nodes {
 
 
         player = new MediaPlayer();
-        metadataUpdater = new MetadataUpdater(ctx);
     }
 
     private Node forwardNode() {
@@ -187,8 +187,6 @@ class Nodes {
             player.reset();
             Node n = forwardNode();
 
-            metadataUpdater.run(n);
-
             player.setDataSource(ctx, Uri.fromFile(n.file));
             player.prepare();
             player.start();
@@ -196,8 +194,6 @@ class Nodes {
                 try {
                     finishedPlayer.reset();
                     Node n2 = forwardNode();
-
-                    metadataUpdater.run(n2);
 
                     player.setDataSource(ctx, Uri.fromFile(n2.file));
                     player.prepare();
@@ -217,12 +213,18 @@ class Nodes {
     }
 
     Notification getNotification() {
+        Collections.shuffle(this.imageFilesPaths);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this.ctx,
                 NOTIFICATION_CHANNEL_ID);
 
-        return notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(BitmapFactory.decodeFile(Nodes.TJ_DIR_IMG + "/tj2.png"))
+        return notificationBuilder
+                .setStyle(
+                        new android.support.v4.media.app.NotificationCompat.MediaStyle()
+                                .setMediaSession(this.ctx.mediaSession.getSessionToken())
+                                .setShowActionsInCompactView(0, 1, 2))
+                .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setLargeIcon(BitmapFactory.decodeFile(this.imageFilesPaths.get(0)))
                 .setContentTitle(nodes.getLast().metadata.name)
                 .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
                 .setCategory(Notification.CATEGORY_SERVICE)

@@ -9,6 +9,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -16,8 +18,11 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import java.util.Comparator;
@@ -40,7 +45,8 @@ public class TJService extends Service {
     MediaSessionCompat mediaSession;
     private NotificationManager notificationManager;
 
-    private ServiceHandler mServiceHandler;
+    private ServiceHandler serviceHandler;
+    private Handler mediaMetadataHandler;
 
     private void initNotificationManager() {
         String channelName = "TJService";
@@ -75,7 +81,55 @@ public class TJService extends Service {
         thread.start();
         // Get the HandlerThread's Looper and use it for our Handler
         Looper mServiceLooper = thread.getLooper();
-        mServiceHandler = new ServiceHandler(mServiceLooper);
+        serviceHandler = new ServiceHandler(mServiceLooper);
+    }
+
+    private void initMediaMetadataHandler() {
+        mediaMetadataHandler = new Handler();
+
+        mediaMetadataHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap bitmap = BitmapFactory.decodeFile(nodes.imageFilesPaths.get(0));
+
+//                Log.w(TAG, "here service initMediaMetadataHandler");
+
+                Nodes.Node currentNode = nodes.nodes.getLast();
+
+                // MediaMetadataCompat
+                MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
+                builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentNode.file
+                        .getName())
+                        .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentNode.file
+                                .getName())
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, "谭晶")
+                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, Nodes.player
+                                .getDuration())
+
+                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
+                mediaSession.setMetadata(builder.build());
+
+                // PlaybackStateCompat
+                long actions = PlaybackStateCompat.ACTION_PLAY
+                        | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+                        | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
+                        | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                        | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
+                if (Nodes.player.isPlaying()) {
+                    actions |= PlaybackStateCompat.ACTION_PAUSE;
+                }
+                int state = Nodes.player.isPlaying() ? PlaybackStateCompat
+                        .STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
+                PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
+                        .setActions(actions).setState(state, Nodes.player.getCurrentPosition(),
+                                1.0f,
+                                SystemClock.elapsedRealtime());
+                mediaSession.setPlaybackState(stateBuilder.build());
+
+                mediaSession.setActive(true);
+                mediaMetadataHandler.postDelayed(this, 5000);
+            }
+        }, 5000);
     }
 
     private TJServiceStatus getCurrentStatus() {
@@ -95,14 +149,13 @@ public class TJService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        Log.w(TAG, "here service onCreate");
-
         nodes = new Nodes(TJService.this);
         initMediaSession();
         initBluetoothBroadcastReceiver();
         initNotificationManager();
         startForeground(NOTIFICATION_ID, nodes.getNotification());
         initServiceHandler();
+        initMediaMetadataHandler();
     }
 
     private final class ServiceHandler extends Handler {
@@ -112,7 +165,6 @@ public class TJService extends Service {
 
         @Override
         public void handleMessage(Message msg) {
-            Log.w(TAG, "here service handleMessage: " + msg.what);
 
             switch (msg.what) {
                 case Constants.SERVICE_CMD_PLAY:
@@ -165,14 +217,12 @@ public class TJService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.w(TAG, "here service onStartCommand");
-
 
         TJServiceCommand cmd = TJServiceCommand.fromJson(intent.getStringExtra(SERVICE_CMD));
-        Message msg = mServiceHandler.obtainMessage();
+        Message msg = serviceHandler.obtainMessage();
         msg.what = cmd.cmdCode;
         msg.arg1 = cmd.arg1; //TODO: used in play from and seek to
-        mServiceHandler.sendMessage(msg);
+        serviceHandler.sendMessage(msg);
 
         return START_STICKY;
     }
