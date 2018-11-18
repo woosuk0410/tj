@@ -133,8 +133,12 @@ public class TJService extends Service {
                 case Constants.SERVICE_CMD_SEEK:
                     Nodes.player.seekTo(msg.arg1);
                     break;
-                case Constants.SERVICE_CMD_SHUFFLE:
+                case Constants.SERVICE_CMD_PRIORITY_SHUFFLE:
                     nodes.priorityShuffle();
+                    nodes.next();
+                    break;
+                case Constants.SERVICE_CMD_SHUFFLE:
+                    nodes.shuffle();
                     nodes.next();
                     break;
                 case Constants.SERVICE_CMD_START:

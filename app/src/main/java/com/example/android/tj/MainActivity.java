@@ -146,6 +146,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void onPriorityShuffle(View view) {
+        sendTJServiceCmd(Constants.SERVICE_CMD_PRIORITY_SHUFFLE);
+    }
+
     public void onShuffle(View view) {
         sendTJServiceCmd(Constants.SERVICE_CMD_SHUFFLE);
     }
