@@ -137,7 +137,7 @@ public class TJService extends Service {
                 ());
         int duration = Nodes.player.getDuration();
         int curPos = Nodes.player.getCurrentPosition();
-        String nowPlaying = nodes.nodes.getLast().file.getName();
+        String nowPlaying = nodes.nodes.getLast().file.getName().replace(".aac", "");
         boolean isPlaying = Nodes.player.isPlaying();
         String md5 = nodes.nodes.getLast().metadata.md5Hash;
         return new TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5);
