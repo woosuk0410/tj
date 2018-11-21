@@ -79,13 +79,13 @@ public class TJNotification extends BroadcastReceiver {
         prevAction =
                 new NotificationCompat.Action(
                         R.drawable.ic_notification_previous,
-                        "Next",
-                        nextIntent);
+                        "Previous",
+                        prevIntent);
         nextAction =
                 new NotificationCompat.Action(
                         R.drawable.ic_notification_next,
-                        "Previous",
-                        prevIntent);
+                        "Next",
+                        nextIntent);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_NEXT);
