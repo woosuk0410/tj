@@ -33,6 +33,7 @@
             android:name=".FrameActivity"
             android:label="@string/title_activity_frame"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".MetadataActivity"></activity>
     </application>
 
 </manifest>

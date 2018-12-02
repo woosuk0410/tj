@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import java.util.LinkedList;
 
+import static com.example.android.tj.Constants.INTENT_PARAM_POSITION;
 import static com.example.android.tj.Constants.SERVICE_CMD;
 import static com.example.android.tj.Constants.SERVICE_RESULT;
 import static com.example.android.tj.Constants.SERVICE_RESULT_STATUS;
@@ -97,6 +98,13 @@ public class MainActivity extends AppCompatActivity {
         lv.setOnItemClickListener((parent, view, position, id) -> {
             sendTJServiceCmd(Constants.SERVICE_CMD_PLAY_FROM, position);
             lv.smoothScrollToPosition(0);
+        });
+
+        lv.setOnItemLongClickListener((parent, view, position, id) -> {
+            Intent intent = new Intent(getApplicationContext(), MetadataActivity.class);
+            intent.putExtra(INTENT_PARAM_POSITION, position);
+            startActivity(intent);
+            return true;
         });
 
         //now playing

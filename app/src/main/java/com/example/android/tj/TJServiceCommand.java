@@ -8,6 +8,8 @@ class TJServiceCommand {
     int cmdCode;
     int arg1;
 
+    String data;
+
     TJServiceCommand(int cmdCode) {
         this.cmdCode = cmdCode;
     }
@@ -15,6 +17,11 @@ class TJServiceCommand {
     TJServiceCommand(int cmdCode, int arg1) {
         this.cmdCode = cmdCode;
         this.arg1 = arg1;
+    }
+
+    TJServiceCommand(int cmdCode, String jsonStr) {
+        this.cmdCode = cmdCode;
+        this.data = jsonStr;
     }
 
     @NonNull

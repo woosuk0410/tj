@@ -24,6 +24,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -137,7 +139,7 @@ public class TJService extends Service {
                 ());
         int duration = Nodes.player.getDuration();
         int curPos = Nodes.player.getCurrentPosition();
-        String nowPlaying = nodes.nodes.getLast().file.getName().replace(".aac", "");
+        String nowPlaying = nodes.nodes.getLast().file.getName();
         boolean isPlaying = Nodes.player.isPlaying();
         String md5 = nodes.nodes.getLast().metadata.md5Hash;
         return new TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5);
@@ -202,6 +204,14 @@ public class TJService extends Service {
                     nodes.nodes.sort(Comparator.comparing(n -> n.file.getName()));
                     nodes.next();
                     break;
+                case Constants.SERVICE_QUERY_METADATA:
+                    Intent intent = new Intent(Constants.SERVICE_ANSWER);
+                    Metadata metadata = nodes.nodes.get(msg.arg1).metadata;
+                    intent.putExtra(Constants.SERVICE_ANSWER_METADATA, new Gson().toJson(metadata));
+                    LocalBroadcastManager.getInstance(TJService.this).sendBroadcast(intent);
+                    break;
+                case Constants.SERVICE_PATCH_METADATA:
+                    nodes.UpdateMetadata((Metadata) msg.obj);
                 case Constants.SERVICE_CMD_SYNC:
                 default:
                     break;
@@ -219,7 +229,12 @@ public class TJService extends Service {
         TJServiceCommand cmd = TJServiceCommand.fromJson(intent.getStringExtra(SERVICE_CMD));
         Message msg = serviceHandler.obtainMessage();
         msg.what = cmd.cmdCode;
-        msg.arg1 = cmd.arg1; //TODO: used in play from and seek to
+        msg.arg1 = cmd.arg1; //TODO: used in play from, seek to, and metadata query
+
+        if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA) {
+            msg.obj = new Gson().fromJson(cmd.data, Metadata.class);
+        }
+
         serviceHandler.sendMessage(msg);
 
         return START_STICKY;

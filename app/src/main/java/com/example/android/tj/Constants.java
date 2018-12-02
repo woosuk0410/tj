@@ -6,6 +6,8 @@ class Constants {
     static final int NOTIFICATION_ID = 1337;
     static final String NOTIFICATION_CHANNEL_ID = "com.example.android.tj";
 
+    static final String INTENT_PARAM_POSITION = "Position";
+
     //for sending to tjservice
     static final String SERVICE_CMD = "service_cmd";
     static final int SERVICE_CMD_SYNC = 0;
@@ -20,7 +22,13 @@ class Constants {
     static final int SERVICE_CMD_SORT = 9;
     static final int SERVICE_CMD_SHUFFLE = 10;
 
+    static final int SERVICE_QUERY_METADATA = 100;
+
+    static final int SERVICE_PATCH_METADATA = 200;
+
 
     static final String SERVICE_RESULT = "service_result";
     static final String SERVICE_RESULT_STATUS = "service_result_status";
+    static final String SERVICE_ANSWER = "service_answer";
+    static final String SERVICE_ANSWER_METADATA = "service_answer_metadata";
 }

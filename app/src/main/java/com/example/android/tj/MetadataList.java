@@ -37,4 +37,9 @@ class Metadata {
     String md5Hash;
     int priority;
     public String name;
+
+    @NonNull
+    public String toString() {
+        return new Gson().toJson(this);
+    }
 }

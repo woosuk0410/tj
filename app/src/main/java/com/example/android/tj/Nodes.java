@@ -51,7 +51,7 @@ class Nodes {
     private static String EXT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath();
     private static String TJ_DIR = EXT_DIR + "/tj";
     static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
-    private static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
+    static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
 
     LinkedList<Node> nodes;
     static MediaPlayer player;
@@ -182,6 +182,14 @@ class Nodes {
 
     File currentFile() {
         return currentNode().file;
+    }
+
+    void UpdateMetadata(Metadata metadata) {
+        for (Node n : nodes) {
+            if (n.metadata.md5Hash.equals(metadata.md5Hash)) {
+                n.metadata = metadata;
+            }
+        }
     }
 
     private void play(int startIdx, boolean forward) {

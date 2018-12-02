@@ -104,4 +104,8 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_frame">FrameActivity</string>
     <string name="show_frames_dynamically">show frames dynamically</string>
+    <string name="save">Save</string>
+    <string name="priority">Priority</string>
+    <string name="hash">Hash</string>
+    <string name="name">name</string>
 </resources>
