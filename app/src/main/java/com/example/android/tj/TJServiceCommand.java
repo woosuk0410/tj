@@ -19,9 +19,9 @@ class TJServiceCommand {
         this.arg1 = arg1;
     }
 
-    TJServiceCommand(int cmdCode, String jsonStr) {
+    TJServiceCommand(int cmdCode, String data) {
         this.cmdCode = cmdCode;
-        this.data = jsonStr;
+        this.data = data;
     }
 
     @NonNull

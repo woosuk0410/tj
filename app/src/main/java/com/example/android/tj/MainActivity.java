@@ -1,5 +1,6 @@
 package com.example.android.tj;
 
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String status = intent.getStringExtra(SERVICE_RESULT_STATUS);
+            if (status == null) return;
             updateUI(TJServiceStatus.fromJson(status));
         }
     };
@@ -65,6 +70,13 @@ public class MainActivity extends AppCompatActivity {
 
         initUI();
         initPollingThread();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     @Override
@@ -182,5 +194,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void onSort(View view) {
         sendTJServiceCmd(Constants.SERVICE_CMD_SORT);
+    }
+
+    public void onSearch(MenuItem item) {
+        Intent intent = new Intent(getApplicationContext(), SearchableActivity.class);
+        intent.setAction(Intent.ACTION_SEARCH);
+        intent.putExtra(SearchManager.QUERY, "");
+        startActivity(intent);
     }
 }

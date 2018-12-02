@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -62,7 +61,8 @@ public class MetadataActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String metadataStr = intent.getStringExtra(SERVICE_ANSWER_METADATA);
-            Log.w("BroadcastReceiver", "here " + metadataStr);
+            if (metadataStr == null) return;
+
             Metadata metadata = new Gson().fromJson(metadataStr, Metadata.class);
 
             currentMetadata = metadata;

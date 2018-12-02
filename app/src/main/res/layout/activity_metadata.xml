@@ -8,8 +8,9 @@
 
     <Button
         android:id="@+id/metadata_save"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="196dp"
+        android:layout_height="38dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
@@ -21,7 +22,7 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tableLayout"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.594" />
 
     <TableLayout
         android:id="@+id/tableLayout"
@@ -85,8 +86,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:inputType="number"
                 android:importantForAutofill="no"
+                android:inputType="number"
                 tools:ignore="LabelFor" />
 
         </TableRow>

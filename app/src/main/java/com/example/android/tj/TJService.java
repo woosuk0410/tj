@@ -22,7 +22,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
+import android.util.Pair;
 
 import com.google.gson.Gson;
 
@@ -91,7 +91,6 @@ public class TJService extends Service {
         mediaMetadataHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-//                Log.w(TAG, "here service initMediaMetadataHandler");
 
                 Bitmap bitmap = nodes.getBitMap();
 
@@ -101,10 +100,8 @@ public class TJService extends Service {
                         .getName().replace(".aac", ""))
                         .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, nodes
                                 .currentFile().getName())
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, "谭晶")
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, Nodes.player
                                 .getDuration())
-
                         .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
                 mediaSession.setMetadata(builder.build());
 
@@ -143,6 +140,16 @@ public class TJService extends Service {
         boolean isPlaying = Nodes.player.isPlaying();
         String md5 = nodes.nodes.getLast().metadata.md5Hash;
         return new TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5);
+    }
+
+    private TJServiceSearchResult getSearchResult(String query) {
+        List<Nodes.Node> candidates = nodes.nodes.stream().filter(n -> n.metadata.name.contains
+                (query)).collect(Collectors.toList());
+
+        List<Pair<String, String>> pairs = candidates.stream().map(candidate -> Pair.create
+                (candidate.metadata.md5Hash, candidate.metadata.name)).collect(Collectors.toList());
+
+        return new TJServiceSearchResult(pairs);
     }
 
     @Override
@@ -212,6 +219,11 @@ public class TJService extends Service {
                     break;
                 case Constants.SERVICE_PATCH_METADATA:
                     nodes.UpdateMetadata((Metadata) msg.obj);
+                case Constants.SERVICE_QUERY_SEARCH:
+                    TJServiceSearchResult result = getSearchResult((String) msg.obj);
+                    intent = new Intent(Constants.SERVICE_ANSWER);
+                    intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toString());
+                    LocalBroadcastManager.getInstance(TJService.this).sendBroadcast(intent);
                 case Constants.SERVICE_CMD_SYNC:
                 default:
                     break;
@@ -233,6 +245,8 @@ public class TJService extends Service {
 
         if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA) {
             msg.obj = new Gson().fromJson(cmd.data, Metadata.class);
+        } else if (cmd.cmdCode == Constants.SERVICE_QUERY_SEARCH) {
+            msg.obj = cmd.data;
         }
 
         serviceHandler.sendMessage(msg);
@@ -242,8 +256,6 @@ public class TJService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.w(TAG, "here service onDestroy");
-
         super.onDestroy();
         unregisterReceiver(receiver);
     }
