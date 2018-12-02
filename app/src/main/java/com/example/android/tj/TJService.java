@@ -98,7 +98,7 @@ public class TJService extends Service {
                 // MediaMetadataCompat
                 MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
                 builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, nodes.currentFile()
-                        .getName())
+                        .getName().replace(".aac", ""))
                         .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, nodes
                                 .currentFile().getName())
                         .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, "谭晶")
