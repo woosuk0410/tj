@@ -16,10 +16,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -33,7 +34,9 @@
             android:name=".FrameActivity"
             android:label="@string/title_activity_frame"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".MetadataActivity"></activity>
+        <activity
+            android:name=".MetadataActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
