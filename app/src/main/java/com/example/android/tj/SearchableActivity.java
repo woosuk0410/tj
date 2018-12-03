@@ -19,9 +19,11 @@ import com.google.gson.Gson;
 
 import java.util.LinkedList;
 
+import static com.example.android.tj.Constants.INTENT_PARAM_HASH;
 import static com.example.android.tj.Constants.SERVICE_ANSWER;
 import static com.example.android.tj.Constants.SERVICE_ANSWER_SEARCH;
 import static com.example.android.tj.Constants.SERVICE_CMD;
+import static com.example.android.tj.Constants.SERVICE_CMD_PLAY_FROM_HASH;
 import static com.example.android.tj.Constants.SERVICE_QUERY_SEARCH;
 
 public class SearchableActivity extends AppCompatActivity {
@@ -32,19 +34,26 @@ public class SearchableActivity extends AppCompatActivity {
             String searchResultStr = intent.getStringExtra(SERVICE_ANSWER_SEARCH);
             if (searchResultStr == null) return;
 
-            TJServiceSearchResult result = new Gson().fromJson(searchResultStr,
-                    TJServiceSearchResult.class);
+            currentResult = new Gson().fromJson(searchResultStr, TJServiceSearchResult.class);
             adapter.clear();
-            adapter.addAll(result.fileNames);
+            adapter.addAll(currentResult.fileNames);
             adapter.notifyDataSetChanged();
 
-            Snackbar snackbar = Snackbar.make(findViewById(R.id.list_searchable_files), result
-                    .hashes.size() + " found.", Snackbar.LENGTH_SHORT);
+            Snackbar snackbar = Snackbar.make(findViewById(R.id.list_searchable_files),
+                    currentResult.hashes.size() + " found.", Snackbar.LENGTH_SHORT);
             snackbar.show();
         }
     };
 
     ArrayAdapter<String> adapter;
+    TJServiceSearchResult currentResult;
+
+    private void playFromHash(String hash) {
+        Intent intent = new Intent(this, TJService.class);
+        intent.putExtra(SERVICE_CMD, new TJServiceCommand(SERVICE_CMD_PLAY_FROM_HASH, hash)
+                .toString());
+        startService(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +63,25 @@ public class SearchableActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
                 new IntentFilter(SERVICE_ANSWER));
 
+        // list view
         ListView lv = findViewById(R.id.list_searchable_files);
         adapter = new ArrayAdapter<>(this, R.layout.activity_listview, new LinkedList<>());
         lv.setAdapter(adapter);
+        lv.setOnItemClickListener((parent, view, position, id) -> {
+            String hash = currentResult.hashes.get(position);
+            playFromHash(hash);
+            finish();
+        });
 
+        lv.setOnItemLongClickListener((parent, view, position, id) -> {
+            Intent intent = new Intent(getApplicationContext(), MetadataActivity.class);
+            String hash = currentResult.hashes.get(position);
+            intent.putExtra(INTENT_PARAM_HASH, hash);
+            startActivity(intent);
+            return true;
+        });
+
+        // search
         Intent intent = getIntent();
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);

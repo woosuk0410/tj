@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
+import android.util.Pair;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -26,6 +27,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 class Nodes {
@@ -156,6 +158,17 @@ class Nodes {
 
     void playFromLocation(int loc) {
         play(loc, true);
+    }
+
+    void playFromHash(String hash) {
+        int loc = IntStream.range(0, nodes.size()).mapToObj(i -> new Pair<>(i,
+                nodes.get(i).metadata.md5Hash)).filter(pair -> pair.second.equals(hash))
+                .findFirst().get().first;
+        play(loc, true);
+    }
+
+    Node getNodeByHash(String hash) {
+        return nodes.stream().filter(n -> n.metadata.md5Hash.equals(hash)).findFirst().get();
     }
 
     void shuffle() {

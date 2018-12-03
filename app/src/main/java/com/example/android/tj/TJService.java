@@ -186,6 +186,9 @@ public class TJService extends Service {
                 case Constants.SERVICE_CMD_PLAY_FROM:
                     nodes.playFromLocation(msg.arg1);
                     break;
+                case Constants.SERVICE_CMD_PLAY_FROM_HASH:
+                    nodes.playFromHash((String) msg.obj);
+                    break;
                 case Constants.SERVICE_CMD_PAUSE:
                     nodes.pause();
                     break;
@@ -217,13 +220,21 @@ public class TJService extends Service {
                     intent.putExtra(Constants.SERVICE_ANSWER_METADATA, new Gson().toJson(metadata));
                     LocalBroadcastManager.getInstance(TJService.this).sendBroadcast(intent);
                     break;
+                case Constants.SERVICE_QUERY_METADATA_BY_HASH:
+                    intent = new Intent(Constants.SERVICE_ANSWER);
+                    metadata = nodes.getNodeByHash((String) msg.obj).metadata;
+                    intent.putExtra(Constants.SERVICE_ANSWER_METADATA, new Gson().toJson(metadata));
+                    LocalBroadcastManager.getInstance(TJService.this).sendBroadcast(intent);
+                    break;
                 case Constants.SERVICE_PATCH_METADATA:
                     nodes.UpdateMetadata((Metadata) msg.obj);
+                    break;
                 case Constants.SERVICE_QUERY_SEARCH:
                     TJServiceSearchResult result = getSearchResult((String) msg.obj);
                     intent = new Intent(Constants.SERVICE_ANSWER);
                     intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toString());
                     LocalBroadcastManager.getInstance(TJService.this).sendBroadcast(intent);
+                    break;
                 case Constants.SERVICE_CMD_SYNC:
                 default:
                     break;
@@ -246,6 +257,10 @@ public class TJService extends Service {
         if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA) {
             msg.obj = new Gson().fromJson(cmd.data, Metadata.class);
         } else if (cmd.cmdCode == Constants.SERVICE_QUERY_SEARCH) {
+            msg.obj = cmd.data;
+        } else if (cmd.cmdCode == Constants.SERVICE_CMD_PLAY_FROM_HASH) {
+            msg.obj = cmd.data;
+        } else if (cmd.cmdCode == Constants.SERVICE_QUERY_METADATA_BY_HASH) {
             msg.obj = cmd.data;
         }
 

@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import static com.example.android.tj.Constants.INTENT_PARAM_HASH;
 import static com.example.android.tj.Constants.INTENT_PARAM_POSITION;
 import static com.example.android.tj.Constants.SERVICE_ANSWER;
 import static com.example.android.tj.Constants.SERVICE_ANSWER_METADATA;
@@ -39,14 +40,29 @@ public class MetadataActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
                 new IntentFilter(SERVICE_ANSWER));
 
-        int position = getIntent().getIntExtra(INTENT_PARAM_POSITION, 0);
-        sendTJServiceCmd(Constants.SERVICE_QUERY_METADATA, position);
+        // TODO: remove query by position
+        int position = getIntent().getIntExtra(INTENT_PARAM_POSITION, -1);
+        if (position != -1) {
+            queryMetadata(position);
+        } else {
+            String hash = getIntent().getStringExtra(INTENT_PARAM_HASH);
+            queryMetadataByHash(hash);
+        }
     }
 
     // TODO: duplicated code. Tried Manifold extension class, but couldn't pass the compilition
-    private void sendTJServiceCmd(int cmd, int arg1) {
+    // should remove after making everything go through hash
+    private void queryMetadata(int arg) {
         Intent intent = new Intent(this, TJService.class);
-        intent.putExtra(SERVICE_CMD, new TJServiceCommand(cmd, arg1).toString());
+        intent.putExtra(SERVICE_CMD, new TJServiceCommand(Constants.SERVICE_QUERY_METADATA, arg)
+                .toString());
+        startService(intent);
+    }
+
+    private void queryMetadataByHash(String hash) {
+        Intent intent = new Intent(this, TJService.class);
+        intent.putExtra(SERVICE_CMD, new TJServiceCommand(Constants.SERVICE_QUERY_METADATA_BY_HASH,
+                hash).toString());
         startService(intent);
     }
 
