@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -55,10 +56,13 @@ class Nodes {
     static String TJ_DIR_IMG = EXT_DIR + "/tj_img";
     static String METADATA_FILE_PATH = EXT_DIR + "/tj.json";
 
-    LinkedList<Node> nodes;
+    List<Node> nodes = Collections.synchronizedList(new LinkedList<>());
+
     static MediaPlayer player;
     private TJService tjService;
     private TJNotification tjNotification;
+
+    Semaphore semaphore = new Semaphore(0);
 
     boolean hasStarted = false; // if the player finished loading the 1st resource
 
@@ -66,51 +70,74 @@ class Nodes {
         this.tjService = ctx;
         this.tjNotification = new TJNotification(this, ctx);
 
-        File[] files = new File(TJ_DIR).listFiles();
-        nodes = Arrays.stream(files).map(Node::new).collect(Collectors.toCollection
-                (LinkedList::new));
+        Thread fileLoadingThread = new Thread(() -> {
+            File[] files = new File(TJ_DIR).listFiles();
 
-        //remove duplicated nodes
-        this.deDuplicate();
+            final int preloadNum = 41;
 
-        //read from/write to metadata
-        try {
-            File metadtaFile = new File(METADATA_FILE_PATH);
-            if (metadtaFile.exists()) {
-                String jsonStr = new String(Files.readAllBytes(Paths.get(METADATA_FILE_PATH)),
-                        "UTF-8");
-
-                MetadataList ml = MetadataList.fromJson(jsonStr);
-
-                //match with existing nodes
-                for (Node n : nodes) {
-                    Optional<Metadata> metadataOp = ml.getByHash(n.metadata.md5Hash);
-                    metadataOp.ifPresent(metadata -> n.metadata = metadata);
-                    if (!metadataOp.isPresent()) {
-                        ml.metadataList.add(n.metadata);
+            try {
+                for (File file : files) {
+                    if (nodes.size() >= preloadNum) {
+                        semaphore.acquire();
+                    }
+                    nodes.add(0, new Node(file));
+                    if (nodes.size() >= preloadNum) {
+                        semaphore.release();
                     }
                 }
-                FileOutputStream fos = new FileOutputStream(metadtaFile);
-                fos.write(ml.toString().getBytes("UTF-8"));
-                fos.close();
 
-            } else {
-                List<Metadata> list = Arrays.stream(nodes.toArray()).map(node -> ((Node) node)
-                        .metadata).collect(Collectors.toList());
-                MetadataList ml = new MetadataList();
-                ml.metadataList = list;
-                String jsonStr = ml.toString();
-                FileOutputStream fos = new FileOutputStream(metadtaFile);
-                fos.write(jsonStr.getBytes("UTF-8"));
-                fos.close();
+                //remove duplicated nodes
+                this.deDuplicate();
+
+                //read from/write to metadata
+                File metadtaFile = new File(METADATA_FILE_PATH);
+                if (metadtaFile.exists()) {
+                    String jsonStr = new String(Files.readAllBytes(Paths.get(METADATA_FILE_PATH)),
+                            "UTF-8");
+
+                    MetadataList ml = MetadataList.fromJson(jsonStr);
+
+                    //match with existing nodes
+                    for (Node n : nodes) {
+                        Optional<Metadata> metadataOp = ml.getByHash(n.metadata.md5Hash);
+                        metadataOp.ifPresent(metadata -> n.metadata = metadata);
+                        if (!metadataOp.isPresent()) {
+                            ml.metadataList.add(n.metadata);
+                        }
+                    }
+                    FileOutputStream fos = new FileOutputStream(metadtaFile);
+                    fos.write(ml.toString().getBytes("UTF-8"));
+                    fos.close();
+
+                } else {
+                    List<Metadata> list = Arrays.stream(nodes.toArray()).map(node -> ((Node) node)
+                            .metadata).collect(Collectors.toList());
+                    MetadataList ml = new MetadataList();
+                    ml.metadataList = list;
+                    String jsonStr = ml.toString();
+                    FileOutputStream fos = new FileOutputStream(metadtaFile);
+                    fos.write(jsonStr.getBytes("UTF-8"));
+                    fos.close();
+                }
+
+                // convert back into non-sync version
+                nodes = new LinkedList<>(nodes);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
             }
+        });
+
+        fileLoadingThread.start();
+
+        try {
+            semaphore.acquire();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
-
         this.priorityShuffle();
-
+        semaphore.release();
 
         player = new MediaPlayer();
     }
@@ -129,14 +156,14 @@ class Nodes {
     }
 
     private Node forwardNode() {
-        Node head = nodes.removeFirst();
-        nodes.addLast(head);
+        Node head = nodes.remove(0);
+        nodes.add(head);
         return head;
     }
 
     private Node backwardNode() {
-        Node tail = nodes.removeLast();
-        nodes.addFirst(tail);
+        Node tail = nodes.remove(nodes.size() - 1);
+        nodes.add(0, tail);
         return tail;
     }
 
@@ -171,6 +198,10 @@ class Nodes {
         return nodes.stream().filter(n -> n.metadata.md5Hash.equals(hash)).findFirst().get();
     }
 
+    Node getLast() {
+        return nodes.get(nodes.size() - 1);
+    }
+
     void shuffle() {
         Collections.shuffle(nodes);
     }
@@ -190,7 +221,7 @@ class Nodes {
     }
 
     private Node currentNode() {
-        return nodes.getLast();
+        return getLast();
     }
 
     File currentFile() {

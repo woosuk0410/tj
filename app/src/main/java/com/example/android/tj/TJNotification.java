@@ -117,7 +117,7 @@ public class TJNotification extends BroadcastReceiver {
                                 .setShowActionsInCompactView(0, 1, 2)
                 )
                 .setSmallIcon(R.drawable.ic_music_note_black_24dp)
-                .setContentTitle(nodes.nodes.getLast().metadata.name)
+                .setContentTitle(nodes.getLast().metadata.name)
                 .setLargeIcon(bitmap)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setContentIntent(pendingIntent)

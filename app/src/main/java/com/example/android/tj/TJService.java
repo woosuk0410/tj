@@ -136,9 +136,9 @@ public class TJService extends Service {
                 ());
         int duration = Nodes.player.getDuration();
         int curPos = Nodes.player.getCurrentPosition();
-        String nowPlaying = nodes.nodes.getLast().file.getName();
+        String nowPlaying = nodes.getLast().file.getName();
         boolean isPlaying = Nodes.player.isPlaying();
-        String md5 = nodes.nodes.getLast().metadata.md5Hash;
+        String md5 = nodes.getLast().metadata.md5Hash;
         return new TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5);
     }
 
@@ -157,6 +157,13 @@ public class TJService extends Service {
         super.onCreate();
 
         nodes = new Nodes(TJService.this);
+        try {
+            nodes.semaphore.acquire();
+            nodes.semaphore.release();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         initMediaSession();
         initBluetoothBroadcastReceiver();
         initNotificationManager();
@@ -242,7 +249,9 @@ public class TJService extends Service {
             Intent intent = new Intent(Constants.SERVICE_RESULT);
             intent.putExtra(Constants.SERVICE_RESULT_STATUS, getCurrentStatus().toString());
             LocalBroadcastManager.getInstance(TJService.this).sendBroadcast(intent);
-            notificationManager.notify(NOTIFICATION_ID, nodes.getNotification());
+            if (msg.what != Constants.SERVICE_CMD_SYNC) {
+                notificationManager.notify(NOTIFICATION_ID, nodes.getNotification());
+            }
         }
     }
 

@@ -17,6 +17,6 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/tj2"
+        app:srcCompat="@drawable/tj3"
         android:contentDescription="@string/show_frames_dynamically" />
 </android.support.constraint.ConstraintLayout>
