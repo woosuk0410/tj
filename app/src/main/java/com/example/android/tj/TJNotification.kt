@@ -13,6 +13,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.app.NotificationCompat
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
+import com.example.android.tj.activity.MainActivity
 import java.util.*
 
 class TJNotification internal constructor(private val nodes: Nodes, private val tjService: TJService) : BroadcastReceiver() {

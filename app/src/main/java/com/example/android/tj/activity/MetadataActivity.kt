@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.activity
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.android.tj.Constants
 import com.example.android.tj.Constants.INTENT_PARAM_HASH
 import com.example.android.tj.Constants.INTENT_PARAM_POSITION
 import com.example.android.tj.Constants.SERVICE_ANSWER
@@ -15,6 +16,8 @@ import com.example.android.tj.Constants.SERVICE_ANSWER_METADATA
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.Constants.SERVICE_PATCH_METADATA
 import com.example.android.tj.Nodes.Companion.METADATA_FILE_PATH
+import com.example.android.tj.R
+import com.example.android.tj.TJService
 import com.example.android.tj.model.Metadata
 import com.example.android.tj.model.MetadataList
 import com.example.android.tj.model.TJServiceCommand

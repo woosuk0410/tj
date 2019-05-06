@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.activity
 
 import android.app.SearchManager
 import android.content.BroadcastReceiver
@@ -19,6 +19,8 @@ import com.example.android.tj.Constants.SERVICE_ANSWER_SEARCH
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.Constants.SERVICE_CMD_PLAY_FROM_HASH
 import com.example.android.tj.Constants.SERVICE_QUERY_SEARCH
+import com.example.android.tj.R
+import com.example.android.tj.TJService
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceSearchResult
 import com.google.android.material.snackbar.Snackbar

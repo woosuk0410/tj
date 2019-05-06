@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.activity
 
 import android.app.SearchManager
 import android.content.BroadcastReceiver
@@ -13,10 +13,13 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.android.tj.Constants
 import com.example.android.tj.Constants.INTENT_PARAM_POSITION
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.Constants.SERVICE_RESULT
 import com.example.android.tj.Constants.SERVICE_RESULT_STATUS
+import com.example.android.tj.R
+import com.example.android.tj.TJService
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceStatus
 import java.util.*

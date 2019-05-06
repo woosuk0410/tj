@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.activity
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -13,6 +13,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.SERVICE_RESULT
 import com.example.android.tj.Constants.SERVICE_RESULT_STATUS
 import com.example.android.tj.Nodes.Companion.TJ_DIR_IMG
+import com.example.android.tj.R
 import com.example.android.tj.model.TJServiceStatus
 import java.io.File
 
