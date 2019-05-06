@@ -12,6 +12,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.android.tj.model.Metadata;
+import com.example.android.tj.model.MetadataList;
+import com.example.android.tj.model.TJServiceCommand;
 import com.google.gson.Gson;
 
 import java.io.File;

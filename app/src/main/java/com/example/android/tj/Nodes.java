@@ -9,6 +9,9 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Pair;
 
+import com.example.android.tj.model.Metadata;
+import com.example.android.tj.model.MetadataList;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 

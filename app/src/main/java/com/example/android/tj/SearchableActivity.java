@@ -15,6 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 
+import com.example.android.tj.model.TJServiceCommand;
+import com.example.android.tj.model.TJServiceSearchResult;
 import com.google.gson.Gson;
 
 import java.util.LinkedList;

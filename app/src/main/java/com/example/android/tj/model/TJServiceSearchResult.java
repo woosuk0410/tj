@@ -1,4 +1,4 @@
-package com.example.android.tj;
+package com.example.android.tj.model;
 
 import android.support.annotation.NonNull;
 import android.util.Pair;
@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TJServiceSearchResult {
-    List<String> fileNames;
-    List<String> hashes;
+    public List<String> fileNames;
+    public List<String> hashes;
 
 
-    TJServiceSearchResult(List<Pair<String, String>> pairs) {
+    public TJServiceSearchResult(List<Pair<String, String>> pairs) {
         this.hashes = pairs.stream().map(pair -> pair.first).collect(Collectors.toList());
         this.fileNames = pairs.stream().map(pair -> pair.second).collect(Collectors.toList());
     }
@@ -23,7 +23,7 @@ public class TJServiceSearchResult {
         return new Gson().toJson(this);
     }
 
-    static TJServiceStatus fromJson(String jsonStr) {
+    public static TJServiceStatus fromJson(String jsonStr) {
         return new Gson().fromJson(jsonStr, TJServiceStatus.class);
     }
 }

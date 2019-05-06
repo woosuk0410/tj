@@ -1,4 +1,4 @@
-package com.example.android.tj;
+package com.example.android.tj.model;
 
 import android.support.annotation.NonNull;
 
@@ -6,16 +6,16 @@ import com.google.gson.Gson;
 
 import java.util.List;
 
-class TJServiceStatus {
-    List<String> fileNamesWithIdx;
-    String nowPlaying;
-    int duration;
-    int currentPosition;
-    boolean isPlaying;
-    String md5;
+public class TJServiceStatus {
+    public List<String> fileNamesWithIdx;
+    public String nowPlaying;
+    public int duration;
+    public int currentPosition;
+    public boolean isPlaying;
+    public String md5;
 
 
-    TJServiceStatus(List<String> fileNamesWithIdx, int duration, int currentPosition, String
+    public TJServiceStatus(List<String> fileNamesWithIdx, int duration, int currentPosition, String
             nowPlaying, boolean isPlaying, String md5) {
         this.fileNamesWithIdx = fileNamesWithIdx;
         this.duration = duration;
@@ -30,7 +30,7 @@ class TJServiceStatus {
         return new Gson().toJson(this);
     }
 
-    static TJServiceStatus fromJson(String jsonStr) {
+    public static TJServiceStatus fromJson(String jsonStr) {
         return new Gson().fromJson(jsonStr, TJServiceStatus.class);
     }
 }

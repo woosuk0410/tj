@@ -19,6 +19,9 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.example.android.tj.model.TJServiceCommand;
+import com.example.android.tj.model.TJServiceStatus;
+
 import java.util.LinkedList;
 
 import static com.example.android.tj.Constants.INTENT_PARAM_POSITION;

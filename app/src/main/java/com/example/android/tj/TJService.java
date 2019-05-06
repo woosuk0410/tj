@@ -24,6 +24,10 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Pair;
 
+import com.example.android.tj.model.Metadata;
+import com.example.android.tj.model.TJServiceCommand;
+import com.example.android.tj.model.TJServiceSearchResult;
+import com.example.android.tj.model.TJServiceStatus;
 import com.google.gson.Gson;
 
 import java.util.Comparator;

@@ -12,6 +12,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 
+import com.example.android.tj.model.TJServiceStatus;
+
 import java.io.File;
 
 import static com.example.android.tj.Constants.SERVICE_RESULT;

@@ -1,4 +1,4 @@
-package com.example.android.tj;
+package com.example.android.tj.model;
 
 import android.support.annotation.NonNull;
 
@@ -10,9 +10,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MetadataList {
-    List<Metadata> metadataList;
+    public List<Metadata> metadataList;
 
-    static MetadataList fromJson(String jsonStr) {
+    public static MetadataList fromJson(String jsonStr) {
         return new Gson().fromJson(jsonStr, MetadataList.class);
     }
 
@@ -21,7 +21,7 @@ public class MetadataList {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this);
     }
 
-    Optional<Metadata> getByHash(String hash) {
+    public Optional<Metadata> getByHash(String hash) {
         List<Metadata> matches = metadataList.stream().filter(metadata -> metadata.md5Hash.equals
                 (hash)).collect
                 (Collectors.toList());
@@ -33,13 +33,3 @@ public class MetadataList {
     }
 }
 
-class Metadata {
-    String md5Hash;
-    int priority;
-    public String name;
-
-    @NonNull
-    public String toString() {
-        return new Gson().toJson(this);
-    }
-}
