@@ -88,8 +88,8 @@ internal class Nodes(private val tjService: TJService) {
                 this.deDuplicate()
 
                 //read from/write to metadata
-                val metadtaFile = File(METADATA_FILE_PATH)
-                if (metadtaFile.exists()) {
+                val metadataFile = File(METADATA_FILE_PATH)
+                if (metadataFile.exists()) {
                     val jsonStr = String(Files.readAllBytes(Paths.get(METADATA_FILE_PATH)),
                             Charset.forName("UTF-8"))
 
@@ -103,7 +103,7 @@ internal class Nodes(private val tjService: TJService) {
                             ml.metadataList.add(metadata)
                         }
                     }
-                    val fos = FileOutputStream(metadtaFile)
+                    val fos = FileOutputStream(metadataFile)
                     fos.write(ml.toString().toByteArray(charset("UTF-8")))
                     fos.close()
 
@@ -111,7 +111,7 @@ internal class Nodes(private val tjService: TJService) {
                     val ml = MetadataList()
                     ml.metadataList = nodes.map { it.metadata }.toMutableList()
                     val jsonStr = ml.toString()
-                    val fos = FileOutputStream(metadtaFile)
+                    val fos = FileOutputStream(metadataFile)
                     fos.write(jsonStr.toByteArray(charset("UTF-8")))
                     fos.close()
                 }
