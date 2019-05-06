@@ -11,11 +11,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
 import android.os.*
-import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Pair
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.android.tj.Constants.NOTIFICATION_ID
 import com.example.android.tj.Constants.SERVICE_CMD

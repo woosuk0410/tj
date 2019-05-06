@@ -7,12 +7,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.INTENT_PARAM_POSITION
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.Constants.SERVICE_RESULT

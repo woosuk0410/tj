@@ -5,10 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.INTENT_PARAM_HASH
 import com.example.android.tj.Constants.INTENT_PARAM_POSITION
 import com.example.android.tj.Constants.SERVICE_ANSWER
@@ -19,6 +18,7 @@ import com.example.android.tj.Nodes.Companion.METADATA_FILE_PATH
 import com.example.android.tj.model.Metadata
 import com.example.android.tj.model.MetadataList
 import com.example.android.tj.model.TJServiceCommand
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import java.io.File
 import java.io.FileOutputStream

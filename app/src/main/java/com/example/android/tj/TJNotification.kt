@@ -11,7 +11,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.support.v4.app.NotificationCompat
+import androidx.core.app.NotificationCompat
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import java.util.*
 
@@ -40,14 +40,14 @@ class TJNotification internal constructor(private val nodes: Nodes, private val 
                     .addAction(if (Nodes.player.isPlaying) pauseAction else playAction)
                     .addAction(nextAction)
                     .setStyle(
-                            android.support.v4.media.app.NotificationCompat.MediaStyle()
+                            androidx.media.app.NotificationCompat.MediaStyle()
                                     .setMediaSession(tjService.mediaSession.sessionToken)
                                     .setShowActionsInCompactView(0, 1, 2)
                     )
                     .setSmallIcon(R.drawable.ic_music_note_black_24dp)
                     .setContentTitle(nodes.last.metadata.name)
                     .setLargeIcon(bitmap)
-                    .setVisibility(Notification.VISIBILITY_PUBLIC)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setContentIntent(pendingIntent)
                     .setOngoing(true)
                     .build()

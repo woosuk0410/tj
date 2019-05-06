@@ -7,9 +7,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.SERVICE_RESULT
 import com.example.android.tj.Constants.SERVICE_RESULT_STATUS
 import com.example.android.tj.Nodes.Companion.TJ_DIR_IMG

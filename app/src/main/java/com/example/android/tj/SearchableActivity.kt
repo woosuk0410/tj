@@ -6,14 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.SearchView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.INTENT_PARAM_HASH
 import com.example.android.tj.Constants.SERVICE_ANSWER
 import com.example.android.tj.Constants.SERVICE_ANSWER_SEARCH
@@ -22,6 +21,7 @@ import com.example.android.tj.Constants.SERVICE_CMD_PLAY_FROM_HASH
 import com.example.android.tj.Constants.SERVICE_QUERY_SEARCH
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceSearchResult
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import java.util.*
 
