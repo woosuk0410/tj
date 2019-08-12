@@ -27,7 +27,7 @@ class FrameActivity : AppCompatActivity() {
             val status = TJServiceStatus.fromJson(rawStatus)
             //            Log.w("FrameActivity", "here:" + status.currentPosition);
 
-            var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj2.png")
+            var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj3.jpg")
             @SuppressLint("DefaultLocale")
             val frameFile = String.format("%s-%03d.jpg", status.md5, status
                     .currentPosition /

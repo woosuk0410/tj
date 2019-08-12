@@ -110,6 +110,11 @@ internal class Nodes(tjService: TJService) {
         return nodes.find { it.id == hash }
     }
 
+    fun sortByTitle() {
+        val newNodes = nodes.toList()
+        nodes = newNodes.sortedBy { it.title }
+    }
+
     fun shuffle() {
         nodes = nodes.shuffled()
     }
@@ -140,6 +145,7 @@ internal class Nodes(tjService: TJService) {
     }
 
     private val singleThreadContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    @Synchronized
     private fun play(startIdx: Int, forward: Boolean) {
         if (this.nodes.isEmpty()) {//TODO: better way to check init
             return

@@ -181,7 +181,7 @@ class TJService : Service() {
                 }
                 Constants.SERVICE_CMD_START -> nodes.start()
                 Constants.SERVICE_CMD_SORT -> {
-                    nodes.nodes = nodes.nodes.sortedBy { it.title }
+                    nodes.sortByTitle()
                     nodes.next()
                 }
                 Constants.SERVICE_QUERY_METADATA -> {
