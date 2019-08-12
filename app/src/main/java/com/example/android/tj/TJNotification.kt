@@ -46,7 +46,7 @@ class TJNotification internal constructor(private val nodes: Nodes, private val 
                                     .setShowActionsInCompactView(0, 1, 2)
                     )
                     .setSmallIcon(R.drawable.ic_music_note_black_24dp)
-                    .setContentTitle(nodes.last.metadata.name)
+                    .setContentTitle(nodes.last?.title)
                     .setLargeIcon(bitmap)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setContentIntent(pendingIntent)

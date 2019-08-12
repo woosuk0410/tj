@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -15,37 +16,35 @@ import com.example.android.tj.Constants.SERVICE_ANSWER
 import com.example.android.tj.Constants.SERVICE_ANSWER_METADATA
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.Constants.SERVICE_PATCH_METADATA
-import com.example.android.tj.Nodes.Companion.METADATA_FILE_PATH
 import com.example.android.tj.R
 import com.example.android.tj.TJService
-import com.example.android.tj.model.Metadata
-import com.example.android.tj.model.MetadataList
+import com.example.android.tj.database.SongMetadata
+import com.example.android.tj.model.MetadataModel
 import com.example.android.tj.model.TJServiceCommand
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
-import java.io.File
-import java.io.FileOutputStream
-import java.nio.charset.Charset
-import java.nio.file.Files
-import java.nio.file.Paths
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MetadataActivity : AppCompatActivity() {
 
-    private lateinit var currentMetadata: Metadata
+    private lateinit var currentMetadata: SongMetadata
+    private val metadataModel: MetadataModel = MetadataModel()
+
 
     private val messageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val metadataStr = intent.getStringExtra(SERVICE_ANSWER_METADATA) ?: return
 
-            val metadata = Gson().fromJson(metadataStr, Metadata::class.java)
+            val metadata = Gson().fromJson(metadataStr, SongMetadata::class.java)
 
             currentMetadata = metadata
 
             val tvName = findViewById<TextView>(R.id.metadata_name_value)
-            tvName.text = metadata.name
+            tvName.text = metadata.title
 
             val tvHash = findViewById<TextView>(R.id.metadata_hash_value)
-            tvHash.text = metadata.md5Hash
+            tvHash.text = metadata.id
 
             val tvPriority = findViewById<TextView>(R.id.metadata_priority_value)
             tvPriority.text = metadata.priority.toString()
@@ -85,50 +84,28 @@ class MetadataActivity : AppCompatActivity() {
         startService(intent)
     }
 
-    private fun patchInMemoryMetadata() {
+    private fun patchInMemoryMetadata(metadata: SongMetadata) {
         val intent = Intent(this, TJService::class.java)
-        intent.putExtra(SERVICE_CMD, TJServiceCommand(SERVICE_PATCH_METADATA, currentMetadata
+        intent.putExtra(SERVICE_CMD, TJServiceCommand(SERVICE_PATCH_METADATA, metadata
                 .toString()).toString())
         startService(intent)
     }
 
-    fun onSave() {
-        try {
-            val metadtaFile = File(METADATA_FILE_PATH)
-            if (metadtaFile.exists()) {
-                val jsonStr = String(Files.readAllBytes(Paths.get(METADATA_FILE_PATH)),
-                        Charset.forName("UTF-8"))
+    fun onSave(view: View) {
 
-                val ml = MetadataList.fromJson(jsonStr)
-
-                val tvHash = findViewById<TextView>(R.id.metadata_hash_value)
-                val hash = tvHash.text.toString()
-
-                val tvPriority = findViewById<TextView>(R.id.metadata_priority_value)
-                val newPriority = Integer.parseInt(tvPriority.text.toString())
-
-                val metadata = ml.getByHash(hash)
-                metadata?.priority = newPriority
-
-                val fos = FileOutputStream(metadtaFile)
-                fos.write(ml.toString().toByteArray(charset("UTF-8")))
-                fos.close()
-
-                assert(hash == currentMetadata.md5Hash)
-                currentMetadata.priority = newPriority
-                patchInMemoryMetadata()
-
-                val snackbar = Snackbar.make(findViewById(R.id.metadata_save), "Done",
+        val priorityTextView = findViewById<TextView>(R.id.metadata_priority_value)
+        val newMetadata = SongMetadata(currentMetadata.id, currentMetadata.title, Integer.parseInt(priorityTextView.text.toString()))
+        GlobalScope.launch {
+            metadataModel.insert(newMetadata) { success ->
+                val msg = if (success) "Done" else "Failed"
+                if (success) {
+                    patchInMemoryMetadata(newMetadata)
+                }
+                val snackBar = Snackbar.make(findViewById(R.id.metadata_save), msg,
                         Snackbar.LENGTH_SHORT)
-                snackbar.show()
-            } else {
-                throw Exception("Metadata file doesn't exist")
+                snackBar.show()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            System.exit(1)
         }
-
     }
 
 }

@@ -33,7 +33,8 @@ abstract class RoomDatabaseClient : RoomDatabase() {
                     context,
                     RoomDatabaseClient::class.java,
                     DB_PATH
-            ).allowMainThreadQueries().build()
+            ).allowMainThreadQueries()
+                    .build()
         }
     }
 }

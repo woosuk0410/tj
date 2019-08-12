@@ -14,12 +14,13 @@ import android.os.*
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.util.Pair
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.android.tj.Constants.NOTIFICATION_ID
 import com.example.android.tj.Constants.SERVICE_CMD
-import com.example.android.tj.model.Metadata
+import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceSearchResult
 import com.example.android.tj.model.TJServiceStatus
@@ -38,15 +39,21 @@ class TJService : Service() {
 
     private val currentStatus: TJServiceStatus
         get() {
-            val fileNames = IntRange(1, nodes.nodes.size).map { i ->
-                "$i.${nodes.nodes[i - 1].file.name}"
+            try {
+                val fileNames = IntRange(1, nodes.nodes.size).map { i ->
+                    "$i.${nodes.nodes[i - 1].title}"
+                }
+                val duration = Nodes.player.duration
+                val curPos = Nodes.player.currentPosition
+                val nowPlaying = nodes.nodes.last().title
+                val isPlaying = Nodes.player.isPlaying
+                val md5 = nodes.nodes.last().id
+                return TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5)
+            } catch (e: Exception) {
+                Log.e("TJService", "Exception when generating currentStatus ${e}")
+                return TJServiceStatus(emptyList(), 0, 0, "", false, "")
             }
-            val duration = Nodes.player.duration
-            val curPos = Nodes.player.currentPosition
-            val nowPlaying = nodes.last.file.name
-            val isPlaying = Nodes.player.isPlaying
-            val md5 = nodes.last.metadata.md5Hash
-            return TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5)
+
         }
 
     private fun initNotificationManager() {
@@ -88,15 +95,18 @@ class TJService : Service() {
 
         mediaMetadataHandler.postDelayed(object : Runnable {
             override fun run() {
+                if (nodes.nodes.isEmpty()) { //TODO: better way to check init
+                    return
+                }
 
                 val bitmap = nodes.bitMap
 
                 // MediaMetadataCompat
                 val builder = MediaMetadataCompat.Builder()
-                builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, nodes.currentFile()
-                        .name.replace(".aac", ""))
+                builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, nodes.currentNode()
+                        .title.replace(".aac", ""))
                         .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, nodes
-                                .currentFile().name)
+                                .currentNode().title)
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, Nodes.player
                                 .duration.toLong())
                         .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
@@ -129,9 +139,9 @@ class TJService : Service() {
     }
 
     private fun getSearchResult(query: String): TJServiceSearchResult {
-        val candidates = nodes.nodes.filter { n -> n.metadata.name.contains(query) }
+        val candidates = nodes.nodes.filter { n -> n.title.contains(query) }
 
-        val pairs = candidates.map { candidate -> Pair.create(candidate.metadata.md5Hash, candidate.metadata.name) }
+        val pairs = candidates.map { candidate -> Pair.create(candidate.id, candidate.title) }
 
         return TJServiceSearchResult(pairs)
     }
@@ -140,13 +150,6 @@ class TJService : Service() {
         super.onCreate()
 
         nodes = Nodes(this@TJService)
-        try {
-            nodes.semaphore.acquire()
-            nodes.semaphore.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            System.exit(1)
-        }
 
         initMediaSession()
         initBluetoothBroadcastReceiver()
@@ -176,28 +179,26 @@ class TJService : Service() {
                     nodes.shuffle()
                     nodes.next()
                 }
-                Constants.SERVICE_CMD_START -> if (!nodes.hasStarted) {
-                    nodes.next()
-                } else {
-                    nodes.play()
-                }
+                Constants.SERVICE_CMD_START -> nodes.start()
                 Constants.SERVICE_CMD_SORT -> {
-                    nodes.nodes.sortBy { it.file.name }
+                    nodes.nodes = nodes.nodes.sortedBy { it.title }
                     nodes.next()
                 }
                 Constants.SERVICE_QUERY_METADATA -> {
                     val intent = Intent(Constants.SERVICE_ANSWER)
-                    val metadata = nodes.nodes[msg.arg1].metadata
+                    val metadata = nodes.nodes[msg.arg1]
                     intent.putExtra(Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
                 Constants.SERVICE_QUERY_METADATA_BY_HASH -> {
                     val intent = Intent(Constants.SERVICE_ANSWER)
-                    val metadata = nodes.getNodeByHash(msg.obj as String)?.metadata
+                    val metadata = nodes.getNodeByHash(msg.obj as String)
                     intent.putExtra(Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
-                Constants.SERVICE_PATCH_METADATA -> nodes.UpdateMetadata(msg.obj as Metadata)
+                Constants.SERVICE_PATCH_METADATA -> {
+                    nodes.updateMetadata(msg.obj as SongMetadata)
+                }
                 Constants.SERVICE_QUERY_SEARCH -> {
                     val result = getSearchResult(msg.obj as String)
                     val intent = Intent(Constants.SERVICE_ANSWER)
@@ -226,7 +227,7 @@ class TJService : Service() {
         msg.arg1 = cmd.arg1 //TODO: used in play from, seek to, and metadata query
 
         if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA) {
-            msg.obj = Gson().fromJson(cmd.data, Metadata::class.java)
+            msg.obj = Gson().fromJson(cmd.data, SongMetadata::class.java)
         } else if (cmd.cmdCode == Constants.SERVICE_QUERY_SEARCH) {
             msg.obj = cmd.data
         } else if (cmd.cmdCode == Constants.SERVICE_CMD_PLAY_FROM_HASH) {

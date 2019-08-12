@@ -12,23 +12,23 @@ data class Image(
         @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
         val data: ByteArray
 ) {
-        override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-                other as Image
+        other as Image
 
-                if (songId != other.songId) return false
-                if (frameOrder != other.frameOrder) return false
-                if (!data.contentEquals(other.data)) return false
+        if (songId != other.songId) return false
+        if (frameOrder != other.frameOrder) return false
+        if (!data.contentEquals(other.data)) return false
 
-                return true
-        }
+        return true
+    }
 
-        override fun hashCode(): Int {
-                var result = songId.hashCode()
-                result = 31 * result + frameOrder
-                result = 31 * result + data.contentHashCode()
-                return result
-        }
+    override fun hashCode(): Int {
+        var result = songId.hashCode()
+        result = 31 * result + frameOrder
+        result = 31 * result + data.contentHashCode()
+        return result
+    }
 }

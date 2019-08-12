@@ -4,32 +4,31 @@ import android.app.Notification
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Environment
-import com.example.android.tj.model.Metadata
-import com.example.android.tj.model.MetadataList
-import org.apache.commons.codec.binary.Hex
-import org.apache.commons.codec.digest.DigestUtils
+import com.example.android.tj.database.SongMetadata
+import com.example.android.tj.model.MetadataModel
+import com.example.android.tj.model.SongModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
-import java.nio.charset.Charset
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.Semaphore
+import java.util.concurrent.Executors
 
 
-internal class Nodes(private val tjService: TJService) {
+internal class Nodes(tjService: TJService) {
 
-    var nodes: MutableList<Node> = Collections.synchronizedList(LinkedList())
+    var nodes: List<SongMetadata> = emptyList()
     private val tjNotification: TJNotification = TJNotification(this, tjService)
 
-    var semaphore = Semaphore(0)
+    private val metadataModel: MetadataModel = MetadataModel()
+    private val songModel: SongModel = SongModel()
+
 
     var hasStarted = false // if the player finished loading the 1st resource
 
-    val last: Node
-        get() = nodes[nodes.size - 1]
+    val last: SongMetadata?
+        get() = nodes.lastOrNull()
 
     val notification: Notification
         get() = tjNotification.notification
@@ -38,129 +37,40 @@ internal class Nodes(private val tjService: TJService) {
         get() {
             var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj2.png")
 
-            val hash = currentNode().metadata.md5Hash
-            val curPos = Nodes.player.currentPosition
-            val frameFile = String.format("%s-%03d.jpg", hash, curPos / 1000 / 5 + 1)
-            val fullPath = "$TJ_DIR_IMG/$frameFile"
-            val f = File(fullPath)
-            if (f.exists()) {
-                bitmap = BitmapFactory.decodeFile(fullPath)
+            if (nodes.isNotEmpty()) {
+                val hash = currentNode().id
+                val curPos = Nodes.player.currentPosition
+                val frameFile = String.format("%s-%03d.jpg", hash, curPos / 1000 / 5 + 1)
+                val fullPath = "$TJ_DIR_IMG/$frameFile"
+                val f = File(fullPath)
+                if (f.exists()) {
+                    bitmap = BitmapFactory.decodeFile(fullPath)
+                }
             }
             return bitmap
         }
 
-    internal inner class Node(var file: File) {
-        lateinit var metadata: Metadata
-
-        init {
-
-            try {
-                val md5 = String(Hex.encodeHex(DigestUtils.md5(Files
-                        .readAllBytes(this.file.toPath()))))
-                this.metadata = Metadata(md5, 0, this.file.name)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                System.exit(1)
-            }
-
-        }
-    }
-
     init {
-
-        val fileLoadingThread = Thread {
-            val files = File(TJ_DIR).listFiles()
-
-            val preloadNum = 41
-
-            try {
-                for (file in files) {
-                    if (nodes.size >= preloadNum) {
-                        semaphore.acquire()
-                    }
-                    nodes.add(0, Node(file))
-                    if (nodes.size >= preloadNum) {
-                        semaphore.release()
-                    }
-                }
-
-                //remove duplicated nodes
-                this.deDuplicate()
-
-                //read from/write to metadata
-                val metadataFile = File(METADATA_FILE_PATH)
-                if (metadataFile.exists()) {
-                    val jsonStr = String(Files.readAllBytes(Paths.get(METADATA_FILE_PATH)),
-                            Charset.forName("UTF-8"))
-
-                    val ml = MetadataList.fromJson(jsonStr)
-
-                    //match with existing nodes
-                    for (n in nodes) {
-                        val metadataOp = ml.getByHash(n.metadata.md5Hash)
-                        metadataOp?.let { metadata ->
-                            n.metadata = metadata
-                            ml.metadataList.add(metadata)
-                        }
-                    }
-                    val fos = FileOutputStream(metadataFile)
-                    fos.write(ml.toString().toByteArray(charset("UTF-8")))
-                    fos.close()
-
-                } else {
-                    val ml = MetadataList()
-                    ml.metadataList = nodes.map { it.metadata }.toMutableList()
-                    val jsonStr = ml.toString()
-                    val fos = FileOutputStream(metadataFile)
-                    fos.write(jsonStr.toByteArray(charset("UTF-8")))
-                    fos.close()
-                }
-
-                // convert back into non-sync version
-                nodes = LinkedList(nodes)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                System.exit(1)
-            }
-        }
-
-        fileLoadingThread.start()
-
-        try {
-            semaphore.acquire()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            System.exit(1)
-        }
-
-        this.priorityShuffle()
-        semaphore.release()
-
         player = MediaPlayer()
-    }
-
-    private fun deDuplicate() {
-        val s = HashSet<String>()
-        val toRemove = LinkedList<Node>()
-        for (n in nodes) {
-            if (s.contains(n.metadata.md5Hash)) {
-                toRemove.add(n)
-            } else {
-                s.add(n.metadata.md5Hash)
+        GlobalScope.launch {
+            metadataModel.getAll { list ->
+                nodes = list
+                priorityShuffle()
+                start() // similar to Constants.SERVICE_CMD_START in main activity. whoever gets here actually start the first song
             }
         }
-        nodes.removeAll(toRemove)
+
     }
 
-    private fun forwardNode(): Node {
-        val head = nodes.removeAt(0)
-        nodes.add(head)
+    private fun forwardNode(): SongMetadata {
+        val head = nodes.first()
+        nodes = nodes.subList(1, nodes.size) + head
         return head
     }
 
-    private fun backwardNode(): Node {
-        val tail = nodes.removeAt(nodes.size - 1)
-        nodes.add(0, tail)
+    private fun backwardNode(): SongMetadata {
+        val tail = nodes.last()
+        nodes = listOf(tail) + nodes.subList(0, nodes.size - 1)
         return tail
     }
 
@@ -172,7 +82,14 @@ internal class Nodes(private val tjService: TJService) {
         player.pause()
     }
 
-    operator fun next() {
+    fun start() {
+        if (!hasStarted) {
+            hasStarted = true
+        }
+        this.play(0, true)
+    }
+
+    fun next() {
         this.play(0, true)
     }
 
@@ -185,97 +102,97 @@ internal class Nodes(private val tjService: TJService) {
     }
 
     fun playFromHash(hash: String) {
-        val loc = nodes.indexOfFirst { it.metadata.md5Hash == hash }
+        val loc = nodes.indexOfFirst { it.id == hash }
         play(loc, true)
     }
 
-    fun getNodeByHash(hash: String): Node? {
-        return nodes.find { it.metadata.md5Hash == hash }
+    fun getNodeByHash(hash: String): SongMetadata? {
+        return nodes.find { it.id == hash }
     }
 
     fun shuffle() {
-        nodes.shuffle()
+        nodes = nodes.shuffled()
     }
 
     fun priorityShuffle() {
         val sortedKeys = TreeSet<Int> { i1, i2 -> i2 - i1 }
-        sortedKeys.addAll(nodes.map { it.metadata.priority })
-        val priorityToNodes = nodes.groupByTo(mutableMapOf()) { it.metadata.priority }
+        sortedKeys.addAll(nodes.map { it.priority })
+        val priorityToNodes = nodes.groupBy { it.priority }
 
-        nodes.clear()
+        var newNodes: List<SongMetadata> = emptyList()
         for (key in sortedKeys) {
             val partial = priorityToNodes[key]
-            partial?.shuffle()
-            nodes.addAll(partial!!)
-        }
-    }
-
-    private fun currentNode(): Node {
-        return last
-    }
-
-    fun currentFile(): File {
-        return currentNode().file
-    }
-
-    fun UpdateMetadata(metadata: Metadata) {
-        for (n in nodes) {
-            if (n.metadata.md5Hash == metadata.md5Hash) {
-                n.metadata = metadata
+            partial?.let {
+                newNodes = newNodes + it.shuffled()
             }
         }
+        nodes = newNodes
     }
 
+    fun currentNode(): SongMetadata {
+        return nodes.last()
+    }
+
+    fun updateMetadata(metadata: SongMetadata) {
+        nodes.find { it.id == metadata.id }?.let {
+            it.priority = metadata.priority
+        }
+    }
+
+    private val singleThreadContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private fun play(startIdx: Int, forward: Boolean) {
-        try {
-            for (i in 0 until startIdx) {
-                if (forward)
-                    forwardNode()
-                else
-                    backwardNode()
-            }
+        if (this.nodes.isEmpty()) {//TODO: better way to check init
+            return
+        }
 
-            //backward needs two more steps
-            if (!forward) {
+        for (i in 0 until startIdx) {
+            if (forward)
+                forwardNode()
+            else
                 backwardNode()
-                backwardNode()
-            }
+        }
 
-            player.reset()
+        //backward needs two more steps
+        if (!forward) {
+            backwardNode()
+            backwardNode()
+        }
+
+        GlobalScope.launch(singleThreadContext) {
             val n = forwardNode()
+            songModel.getById(n.id) { song ->
+                song?.let {
+                    player.reset()
+                    player.setDataSource(ByteArrayMediaDataSource(it.data()))
+                    player.prepareAsync()
+                    player.setOnPreparedListener { player ->
+                        player.start()
+                    }
+                    player.setOnCompletionListener { _ ->
 
-            player.setDataSource(tjService, Uri.fromFile(n.file))
-            player.prepare()
-            player.start()
-            player.setOnCompletionListener { finishedPlayer ->
-                try {
-                    finishedPlayer.reset()
-                    val n2 = forwardNode()
-
-                    player.setDataSource(tjService, Uri.fromFile(n2.file))
-                    player.prepare()
-                    player.start()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                        GlobalScope.launch(singleThreadContext) {
+                            val n2 = forwardNode()
+                            songModel.getById(n2.id) { songOp ->
+                                songOp?.let {
+                                    player.reset()
+                                    player.setDataSource(ByteArrayMediaDataSource(it.data()))
+                                    player.prepareAsync()
+                                    player.setOnPreparedListener { player ->
+                                        player.start()
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-
-            //TODO: may have a better way
-            if (!hasStarted) {
-                hasStarted = true
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
-
     }
 
     companion object {
 
         private val EXT_DIR = Environment.getExternalStorageDirectory().absolutePath
-        private val TJ_DIR = "$EXT_DIR/tj"
         val TJ_DIR_IMG = "$EXT_DIR/tj_img"
-        val METADATA_FILE_PATH = "$EXT_DIR/tj.json"
 
         lateinit var player: MediaPlayer
     }
