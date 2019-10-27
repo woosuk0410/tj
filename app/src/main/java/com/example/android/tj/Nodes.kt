@@ -3,17 +3,15 @@ package com.example.android.tj
 import android.app.Notification
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.MediaPlayer
 import android.os.Environment
+import com.example.android.tj.Contexts.singleThreadContext
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.MetadataModel
 import com.example.android.tj.model.SongModel
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
-import java.util.concurrent.Executors
 
 
 internal class Nodes(tjService: TJService) {
@@ -51,7 +49,7 @@ internal class Nodes(tjService: TJService) {
         }
 
     init {
-        player = MediaPlayer()
+        player = PlayerWrapper()
         GlobalScope.launch {
             metadataModel.getAll { list ->
                 nodes = list
@@ -82,11 +80,11 @@ internal class Nodes(tjService: TJService) {
         player.pause()
     }
 
-    fun start() {
+    private fun start() {
         if (!hasStarted) {
             hasStarted = true
+            this.play(0, true)
         }
-        this.play(0, true)
     }
 
     fun next() {
@@ -144,7 +142,6 @@ internal class Nodes(tjService: TJService) {
         }
     }
 
-    private val singleThreadContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     @Synchronized
     private fun play(startIdx: Int, forward: Boolean) {
         if (this.nodes.isEmpty()) {//TODO: better way to check init
@@ -168,23 +165,26 @@ internal class Nodes(tjService: TJService) {
             val n = forwardNode()
             songModel.getById(n.id) { song ->
                 song?.let {
+                    PlayerSemaphore.lock.acquire()
                     player.reset()
                     player.setDataSource(ByteArrayMediaDataSource(it.data()))
                     player.prepareAsync()
                     player.setOnPreparedListener { player ->
                         player.start()
+                        PlayerSemaphore.lock.release()
                     }
                     player.setOnCompletionListener { _ ->
-
                         GlobalScope.launch(singleThreadContext) {
                             val n2 = forwardNode()
                             songModel.getById(n2.id) { songOp ->
-                                songOp?.let {
+                                songOp?.let { it ->
+                                    PlayerSemaphore.lock.acquire()
                                     player.reset()
                                     player.setDataSource(ByteArrayMediaDataSource(it.data()))
                                     player.prepareAsync()
                                     player.setOnPreparedListener { player ->
                                         player.start()
+                                        PlayerSemaphore.lock.release()
                                     }
                                 }
                             }
@@ -200,6 +200,6 @@ internal class Nodes(tjService: TJService) {
         private val EXT_DIR = Environment.getExternalStorageDirectory().absolutePath
         val TJ_DIR_IMG = "$EXT_DIR/tj_img"
 
-        lateinit var player: MediaPlayer
+        lateinit var player: PlayerWrapper
     }
 }
