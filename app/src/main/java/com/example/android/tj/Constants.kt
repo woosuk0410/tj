@@ -17,7 +17,7 @@ internal object Constants {
     val SERVICE_CMD_PRIORITY_SHUFFLE = 3
     val SERVICE_CMD_SHUFFLE = 31
     val SERVICE_CMD_SEEK = 4
-    val SERVICE_CMD_START = 5 //different from PLAY
+    val SERVICE_CMD_START = 5 //unused
     val SERVICE_CMD_PLAY_FROM = 6
     val SERVICE_CMD_PLAY_FROM_HASH = 61
     val SERVICE_CMD_NEXT = 7

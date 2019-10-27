@@ -178,7 +178,6 @@ class TJService : Service() {
                     nodes.shuffle()
                     nodes.next()
                 }
-                Constants.SERVICE_CMD_START -> nodes.start()
                 Constants.SERVICE_CMD_SORT -> {
                     nodes.sortByTitle()
                     nodes.next()

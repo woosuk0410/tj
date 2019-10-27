@@ -55,9 +55,6 @@ class MainActivity : AppCompatActivity() {
         seekBar = findViewById(R.id.seekBar)
         nowPlaying = findViewById(R.id.now_playing)
 
-        sendTJServiceCmd(Constants.SERVICE_CMD_START)
-
-
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
                 IntentFilter(SERVICE_RESULT))
 
