@@ -58,8 +58,7 @@ class TJService : Service() {
 
     private fun initNotificationManager() {
         val channelName = "TJService"
-        val chan = NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName,
-                NotificationManager.IMPORTANCE_DEFAULT)
+        val chan = NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_LOW)
         chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -213,9 +212,7 @@ class TJService : Service() {
             val intent = Intent(Constants.SERVICE_RESULT)
             intent.putExtra(Constants.SERVICE_RESULT_STATUS, currentStatus.toString())
             LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
-            if (msg.what != Constants.SERVICE_CMD_SYNC) {
-                notificationManager.notify(NOTIFICATION_ID, nodes.notification)
-            }
+            notificationManager.notify(NOTIFICATION_ID, nodes.notification)
         }
     }
 
