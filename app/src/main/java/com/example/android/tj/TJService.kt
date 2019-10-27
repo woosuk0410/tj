@@ -108,7 +108,7 @@ class TJService : Service() {
                                 .currentNode().title)
                         .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, Nodes.player
                                 .duration.toLong())
-                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
+                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap)
                 mediaSession.setMetadata(builder.build())
 
                 // PlaybackStateCompat
