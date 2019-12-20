@@ -3,14 +3,14 @@ package com.example.android.tj
 import android.media.MediaPlayer
 
 class PlayerWrapper : MediaPlayer() {
-
     override fun getDuration(): Int {
         if (PlayerSemaphore.lock.tryAcquire()) {
+            var ret = 0
             try {
-                val ret = super.getDuration()
-                return ret
+                ret = super.getDuration()
             } finally {
                 PlayerSemaphore.lock.release()
+                return ret
             }
         } else {
             return 0
@@ -19,11 +19,12 @@ class PlayerWrapper : MediaPlayer() {
 
     override fun getCurrentPosition(): Int {
         if (PlayerSemaphore.lock.tryAcquire()) {
+            var ret = 0
             try {
-                val ret = super.getCurrentPosition()
-                return ret
+                ret = super.getCurrentPosition()
             } finally {
                 PlayerSemaphore.lock.release()
+                return ret
             }
         } else {
             return 0
