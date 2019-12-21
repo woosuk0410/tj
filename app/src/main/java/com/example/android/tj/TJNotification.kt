@@ -13,7 +13,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.app.NotificationCompat
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
-import com.example.android.tj.activity.MainActivity
+import com.example.android.tj.activity.MainActivityV2
 import java.util.*
 
 class TJNotification internal constructor(private val nodes: Nodes, private val tjService: TJService) : BroadcastReceiver() {
@@ -32,7 +32,7 @@ class TJNotification internal constructor(private val nodes: Nodes, private val 
 
             val bitmap = nodes.bitMap
 
-            val intent = Intent(tjService, MainActivity::class.java)
+            val intent = Intent(tjService, MainActivityV2::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             val pendingIntent = PendingIntent.getActivity(tjService, 0, intent, 0)
 

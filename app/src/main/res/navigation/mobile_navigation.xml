@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_playing">
+
+    <fragment
+        android:id="@+id/navigation_playing"
+        android:name="com.example.android.tj.activity.ui.playing.NowPlayingFragment"
+        android:label="@string/title_playing"
+        tools:layout="@layout/fragment_playing" />
+
+    <fragment
+        android:id="@+id/navigation_songs"
+        android:name="com.example.android.tj.activity.ui.songs.SongsFragment"
+        android:label="@string/title_songs"
+        tools:layout="@layout/fragment_songs">
+        <action
+            android:id="@+id/action_navigation_songs_to_song_attr_edit_fragment"
+            app:destination="@id/song_attr_edit_fragment" />
+        <action
+            android:id="@+id/action_navigation_songs_to_selected_songs"
+            app:destination="@id/selected_songs" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/selected_songs"
+        android:name="com.example.android.tj.activity.ui.songs.selected.SelectedSongsFragment"
+        android:label="Selected Songs"
+        tools:layout="@layout/fragment_songs">
+        <action
+            android:id="@+id/action_selected_songs_to_song_attr_edit_fragment"
+            app:destination="@id/song_attr_edit_fragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/navigation_gallery"
+        android:name="com.example.android.tj.activity.ui.gallery.GalleryFragment"
+        android:label="@string/title_gallery"
+        tools:layout="@layout/fragment_gallery" />
+    <fragment
+        android:id="@+id/song_attr_edit_fragment"
+        android:name="com.example.android.tj.activity.ui.songs.SongAttrEditFragment"
+        android:label="Song Metadta Edit"
+        tools:layout="@layout/fragment_song_attr_edit">
+        <argument
+            android:name="hash"
+            android:defaultValue=" "
+            app:argType="string" />
+    </fragment>
+</navigation>

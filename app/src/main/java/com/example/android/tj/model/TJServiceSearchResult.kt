@@ -3,6 +3,7 @@ package com.example.android.tj.model
 import android.util.Pair
 import com.google.gson.Gson
 
+@Deprecated("to be removed")
 class TJServiceSearchResult(pairs: List<Pair<String, String>>) {
     var fileNames: List<String>
     var hashes: List<String>

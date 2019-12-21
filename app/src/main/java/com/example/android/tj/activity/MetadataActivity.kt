@@ -26,6 +26,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+@Deprecated("to be removed")
 class MetadataActivity : AppCompatActivity() {
 
     private lateinit var currentMetadata: SongMetadata
@@ -64,7 +65,7 @@ class MetadataActivity : AppCompatActivity() {
             queryMetadata(position)
         } else {
             val hash = intent.getStringExtra(INTENT_PARAM_HASH)
-            queryMetadataByHash(hash)
+            hash?.let { queryMetadataByHash(it) }
         }
     }
 

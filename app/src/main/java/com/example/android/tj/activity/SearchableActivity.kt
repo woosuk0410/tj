@@ -27,6 +27,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import java.util.*
 
+@Deprecated("to be removed")
 class SearchableActivity : AppCompatActivity() {
 
     private val messageReceiver = object : BroadcastReceiver() {

@@ -24,6 +24,7 @@ import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceStatus
 import java.util.*
 
+@Deprecated("to be removed")
 class MainActivity : AppCompatActivity() {
 
 

@@ -12,6 +12,8 @@ class TJServiceCommand {
         this.cmdCode = cmdCode
     }
 
+    //TODO: more general representation for arg1
+    // polymorphism?
     constructor(cmdCode: Int, arg1: Int) {
         this.cmdCode = cmdCode
         this.arg1 = arg1

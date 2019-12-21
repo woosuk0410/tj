@@ -15,19 +15,17 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.util.Pair
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.android.tj.Constants.NOTIFICATION_ID
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.TJServiceCommand
-import com.example.android.tj.model.TJServiceSearchResult
+import com.example.android.tj.model.TJServiceSongMetadataList
 import com.example.android.tj.model.TJServiceStatus
 import com.google.gson.Gson
 
 class TJService : Service() {
-
 
     private lateinit var nodes: Nodes
     private lateinit var receiver: BroadcastReceiver
@@ -40,14 +38,20 @@ class TJService : Service() {
     private val currentStatus: TJServiceStatus
         get() {
             try {
-                val fileNames = IntRange(1, nodes.nodes.size).map { i ->
-                    "$i.${nodes.nodes[i - 1].title}"
+                //TODO: to remove after migration
+                val fileNames = IntRange(0, nodes.currentList.size - 1).map { i ->
+                    if (i == 0) {
+                        "Playing: ${nodes.currentList[i].title}"
+                    } else {
+                        "$i.${nodes.currentList[i].title}"
+
+                    }
                 }
                 val duration = Nodes.player.duration
                 val curPos = Nodes.player.currentPosition
-                val nowPlaying = nodes.nodes.last().title
+                val nowPlaying = nodes.currentNode().title
                 val isPlaying = Nodes.player.isPlaying
-                val md5 = nodes.nodes.last().id
+                val md5 = nodes.currentNode().id
                 return TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5)
             } catch (e: Exception) {
                 Log.e("TJService", "Exception when generating currentStatus ${e}")
@@ -94,7 +98,7 @@ class TJService : Service() {
 
         mediaMetadataHandler.postDelayed(object : Runnable {
             override fun run() {
-                if (nodes.nodes.isEmpty()) { //TODO: better way to check init
+                if (nodes.currentList.isEmpty()) { //TODO: better way to check init
                     return
                 }
 
@@ -137,12 +141,9 @@ class TJService : Service() {
         }, 5000)
     }
 
-    private fun getSearchResult(query: String): TJServiceSearchResult {
-        val candidates = nodes.nodes.filter { n -> n.title.contains(query) }
-
-        val pairs = candidates.map { candidate -> Pair.create(candidate.id, candidate.title) }
-
-        return TJServiceSearchResult(pairs)
+    private fun getSearchResult(query: String): TJServiceSongMetadataList {
+        val candidates = nodes.currentList.filter { n -> n.title.contains(query, true) }
+        return TJServiceSongMetadataList(candidates)
     }
 
     override fun onCreate() {
@@ -172,19 +173,19 @@ class TJService : Service() {
                 Constants.SERVICE_CMD_SEEK -> Nodes.player.seekTo(msg.arg1)
                 Constants.SERVICE_CMD_PRIORITY_SHUFFLE -> {
                     nodes.priorityShuffle()
-                    nodes.next()
+                    nodes.playFromTop()
                 }
                 Constants.SERVICE_CMD_SHUFFLE -> {
                     nodes.shuffle()
-                    nodes.next()
+                    nodes.playFromTop()
                 }
                 Constants.SERVICE_CMD_SORT -> {
                     nodes.sortByTitle()
-                    nodes.next()
+                    nodes.playFromTop()
                 }
                 Constants.SERVICE_QUERY_METADATA -> {
                     val intent = Intent(Constants.SERVICE_ANSWER)
-                    val metadata = nodes.nodes[msg.arg1]
+                    val metadata = nodes.currentList[msg.arg1]
                     intent.putExtra(Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
@@ -197,11 +198,37 @@ class TJService : Service() {
                 Constants.SERVICE_PATCH_METADATA -> {
                     nodes.updateMetadata(msg.obj as SongMetadata)
                 }
+                Constants.SERVICE_ADD_TO_SELECTED_LIST -> {
+                    nodes.addToSelectedList(msg.obj as SongMetadata)
+                }
                 Constants.SERVICE_QUERY_SEARCH -> {
                     val result = getSearchResult(msg.obj as String)
                     val intent = Intent(Constants.SERVICE_ANSWER)
                     intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toString())
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
+                }
+                Constants.SERVICE_CMD_SYNC_METADATA -> {
+                    val metadataNormalList = TJServiceSongMetadataList(nodes.normalList)
+                    val metadataSelectedList = TJServiceSongMetadataList(nodes.selectedList)
+
+                    val intent = Intent(Constants.SERVICE_RESULT)
+                    intent.putExtra(Constants.SERVICE_RESULT_METADATA_NORMAL_LIST, metadataNormalList.toString())
+                    intent.putExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST, metadataSelectedList.toString())
+                    LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
+                }
+                Constants.SERVICE_CLEAR_SELECTED_LIST -> {
+                    nodes.selectedList = emptyList()
+                }
+                Constants.SERVICE_CMD_SWITCH_TARGET_LIST -> {
+                    val targetMode = when (msg.arg1) {
+                        CurrentListMode.Normal.value -> CurrentListMode.Normal
+                        CurrentListMode.Selected.value -> CurrentListMode.Selected
+                        else -> throw RuntimeException("${msg.arg1} does not match ${CurrentListMode.Normal} or ${CurrentListMode.Selected}")
+                    }
+                    nodes.switchCurrentListMode(targetMode)
+                }
+                Constants.SERVICE_CMD_PLAY_FROM_TOP -> {
+                    nodes.playFromTop()
                 }
                 Constants.SERVICE_CMD_SYNC -> {
                 }
@@ -222,7 +249,8 @@ class TJService : Service() {
         msg.what = cmd.cmdCode
         msg.arg1 = cmd.arg1 //TODO: used in play from, seek to, and metadata query
 
-        if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA) {
+        if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA
+                || cmd.cmdCode == Constants.SERVICE_ADD_TO_SELECTED_LIST) {
             msg.obj = Gson().fromJson(cmd.data, SongMetadata::class.java)
         } else if (cmd.cmdCode == Constants.SERVICE_QUERY_SEARCH) {
             msg.obj = cmd.data

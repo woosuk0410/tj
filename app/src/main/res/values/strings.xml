@@ -13,4 +13,12 @@
     <string name="name">Name</string>
     <string name="song_name">Key words in song names</string>
     <string name="search_title">Search</string>
+    <string name="selected_count">Count</string>
+    <string name="title_activity_main_v2">MainActivityV2</string>
+    <string name="title_playing">Playing</string>
+    <string name="title_songs">Songs</string>
+    <string name="title_gallery">Gallery</string>
+
+    <string name="selected_songs_menu_play">Play</string>
+    <string name="selected_songs_menu_clear">Clear</string>
 </resources>

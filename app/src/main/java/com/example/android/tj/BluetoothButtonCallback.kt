@@ -17,7 +17,7 @@ class BluetoothButtonCallback internal constructor(private val nodes: Nodes) : M
             } else if (keyCode == KeyEvent.KEYCODE_MEDIA_NEXT) {
                 nodes.priorityShuffle()
             }
-            nodes.next()
+            nodes.playFromTop()
         }
 
         eventList.add(Pair(keyCode, System.currentTimeMillis()))

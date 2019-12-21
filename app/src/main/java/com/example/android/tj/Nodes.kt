@@ -16,7 +16,24 @@ import java.util.*
 
 internal class Nodes(tjService: TJService) {
 
-    var nodes: List<SongMetadata> = emptyList()
+    var normalList: List<SongMetadata> = emptyList()
+    var selectedList: List<SongMetadata> = emptyList()
+    var currentList: List<SongMetadata>
+        get() {
+            return if (currentListMode == CurrentListMode.Normal) normalList else selectedList
+        }
+        set(value) {
+            if (currentListMode == CurrentListMode.Normal) {
+                normalList = value
+            } else {
+                selectedList = value
+            }
+        }
+    private var currentListMode: CurrentListMode = CurrentListMode.Normal
+    fun switchCurrentListMode(target: CurrentListMode) {
+        if (currentListMode != target) currentListMode = target
+    }
+
     private val tjNotification: TJNotification = TJNotification(this, tjService)
 
     private val metadataModel: MetadataModel = MetadataModel()
@@ -26,7 +43,7 @@ internal class Nodes(tjService: TJService) {
     var hasStarted = false // if the player finished loading the 1st resource
 
     val last: SongMetadata?
-        get() = nodes.lastOrNull()
+        get() = currentList.lastOrNull()
 
     val notification: Notification
         get() = tjNotification.notification
@@ -35,9 +52,9 @@ internal class Nodes(tjService: TJService) {
         get() {
             var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj2.png")
 
-            if (nodes.isNotEmpty()) {
+            if (currentList.isNotEmpty()) {
                 val hash = currentNode().id
-                val curPos = Nodes.player.currentPosition
+                val curPos = player.currentPosition
                 val frameFile = String.format("%s-%03d.jpg", hash, curPos / 1000 / 5 + 1)
                 val fullPath = "$TJ_DIR_IMG/$frameFile"
                 val f = File(fullPath)
@@ -52,7 +69,7 @@ internal class Nodes(tjService: TJService) {
         player = PlayerWrapper()
         GlobalScope.launch {
             metadataModel.getAll { list ->
-                nodes = list
+                currentList = list
                 priorityShuffle()
                 start() // similar to Constants.SERVICE_CMD_START in main activity. whoever gets here actually start the first song
             }
@@ -61,14 +78,14 @@ internal class Nodes(tjService: TJService) {
     }
 
     private fun forwardNode(): SongMetadata {
-        val head = nodes.first()
-        nodes = nodes.subList(1, nodes.size) + head
-        return head
+        val head = currentList.first()
+        currentList = currentList.subList(1, currentList.size) + head
+        return currentList.first()
     }
 
     private fun backwardNode(): SongMetadata {
-        val tail = nodes.last()
-        nodes = listOf(tail) + nodes.subList(0, nodes.size - 1)
+        val tail = currentList.last()
+        currentList = listOf(tail) + currentList.subList(0, currentList.size - 1)
         return tail
     }
 
@@ -83,44 +100,48 @@ internal class Nodes(tjService: TJService) {
     private fun start() {
         if (!hasStarted) {
             hasStarted = true
-            this.play(0, true)
+            this.play(0)
         }
     }
 
+    fun playFromTop() {
+        playFromLocation(0)
+    }
+
     fun next() {
-        this.play(0, true)
+        this.play(1)
     }
 
     fun previous() {
-        this.play(0, false)
+        this.play(0, true)
     }
 
     fun playFromLocation(loc: Int) {
-        play(loc, true)
+        play(loc)
     }
 
     fun playFromHash(hash: String) {
-        val loc = nodes.indexOfFirst { it.id == hash }
-        play(loc, true)
+        val loc = currentList.indexOfFirst { it.id == hash }
+        play(loc)
     }
 
     fun getNodeByHash(hash: String): SongMetadata? {
-        return nodes.find { it.id == hash }
+        return currentList.find { it.id == hash }
     }
 
     fun sortByTitle() {
-        val newNodes = nodes.toList()
-        nodes = newNodes.sortedBy { it.title }
+        val newNodes = currentList.toList()
+        currentList = newNodes.sortedBy { it.title }
     }
 
     fun shuffle() {
-        nodes = nodes.shuffled()
+        currentList = currentList.shuffled()
     }
 
     fun priorityShuffle() {
         val sortedKeys = TreeSet<Int> { i1, i2 -> i2 - i1 }
-        sortedKeys.addAll(nodes.map { it.priority })
-        val priorityToNodes = nodes.groupBy { it.priority }
+        sortedKeys.addAll(currentList.map { it.priority })
+        val priorityToNodes = currentList.groupBy { it.priority }
 
         var newNodes: List<SongMetadata> = emptyList()
         for (key in sortedKeys) {
@@ -129,46 +150,47 @@ internal class Nodes(tjService: TJService) {
                 newNodes = newNodes + it.shuffled()
             }
         }
-        nodes = newNodes
+        currentList = newNodes
     }
 
     fun currentNode(): SongMetadata {
-        return nodes.last()
+        return currentList.first()
     }
 
     fun updateMetadata(metadata: SongMetadata) {
-        nodes.find { it.id == metadata.id }?.let {
+        currentList.find { it.id == metadata.id }?.let {
             it.priority = metadata.priority
         }
     }
 
+    fun addToSelectedList(metadata: SongMetadata) {
+        selectedList = selectedList + metadata
+    }
+
     @Synchronized
-    private fun play(startIdx: Int, forward: Boolean) {
-        if (this.nodes.isEmpty()) {//TODO: better way to check init
+    private fun play(startIdx: Int, withOneBackwardStep: Boolean = false) {
+        if (this.currentList.isEmpty()) { //TODO: better way to check init
             return
         }
 
         for (i in 0 until startIdx) {
-            if (forward)
-                forwardNode()
-            else
-                backwardNode()
+            forwardNode()
         }
 
-        //backward needs two more steps
-        if (!forward) {
-            backwardNode()
+        if (withOneBackwardStep) {
             backwardNode()
         }
 
         GlobalScope.launch(singleThreadContext) {
-            val n = forwardNode()
+            val n = currentNode()
             songModel.getById(n.id) { song ->
                 song?.let {
                     PlayerSemaphore.lock.acquire()
                     player.reset()
                     player.setDataSource(ByteArrayMediaDataSource(it.data()))
                     player.prepareAsync()
+
+                    // setOnPreparedListener and setOnPreparedListener only need to be called once
                     player.setOnPreparedListener { player ->
                         player.start()
                         PlayerSemaphore.lock.release()
@@ -182,10 +204,6 @@ internal class Nodes(tjService: TJService) {
                                     player.reset()
                                     player.setDataSource(ByteArrayMediaDataSource(it.data()))
                                     player.prepareAsync()
-                                    player.setOnPreparedListener { player ->
-                                        player.start()
-                                        PlayerSemaphore.lock.release()
-                                    }
                                 }
                             }
                         }
