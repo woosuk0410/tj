@@ -37,25 +37,16 @@ class TJService : Service() {
 
     private val currentStatus: TJServiceStatus
         get() {
-            try {
-                //TODO: to remove after migration
-                val fileNames = IntRange(0, nodes.currentList.size - 1).map { i ->
-                    if (i == 0) {
-                        "Playing: ${nodes.currentList[i].title}"
-                    } else {
-                        "$i.${nodes.currentList[i].title}"
-
-                    }
-                }
+            return try {
                 val duration = Nodes.player.duration
                 val curPos = Nodes.player.currentPosition
                 val nowPlaying = nodes.currentNode().title
                 val isPlaying = Nodes.player.isPlaying
                 val md5 = nodes.currentNode().id
-                return TJServiceStatus(fileNames, duration, curPos, nowPlaying, isPlaying, md5)
+                TJServiceStatus(duration, curPos, nowPlaying, isPlaying, md5)
             } catch (e: Exception) {
                 Log.e("TJService", "Exception when generating currentStatus ${e}")
-                return TJServiceStatus(emptyList(), 0, 0, "", false, "")
+                TJServiceStatus(0, 0, "", false, "")
             }
 
         }
@@ -190,12 +181,6 @@ class TJService : Service() {
                     nodes.sortByTitle()
                     nodes.playFromTop()
                 }
-                Constants.SERVICE_QUERY_METADATA         -> {
-                    val intent = Intent(Constants.SERVICE_ANSWER)
-                    val metadata = nodes.currentList[msg.arg1]
-                    intent.putExtra(Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
-                    LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
-                }
                 Constants.SERVICE_QUERY_METADATA_BY_HASH -> {
                     val intent = Intent(Constants.SERVICE_ANSWER)
                     val metadata = nodes.getNodeByHash(msg.obj as String)
@@ -259,7 +244,7 @@ class TJService : Service() {
         val cmd = TJServiceCommand.fromJson(intent.getStringExtra(SERVICE_CMD))
         val msg = serviceHandler.obtainMessage()
         msg.what = cmd.cmdCode
-        msg.arg1 = cmd.arg1 //TODO: used in play from, seek to, and metadata query
+        msg.arg1 = cmd.arg1 //TODO: used in play from, seek to, and songs list mode
 
         if (cmd.cmdCode == Constants.SERVICE_PATCH_METADATA
             || cmd.cmdCode == Constants.SERVICE_ADD_TO_SELECTED_LIST

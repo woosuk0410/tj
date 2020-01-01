@@ -29,7 +29,6 @@
             </intent-filter>
 
         </activity>
-        <activity android:name=".activity.MainActivity" />
 
         <service
             android:name=".TJService"
@@ -40,20 +39,6 @@
             android:name=".activity.FrameActivity"
             android:label="@string/title_activity_frame"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activity.MetadataActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activity.SearchableActivity"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.app.searchable"
-                android:resource="@xml/searchable" />
-        </activity>
     </application>
 
 </manifest>
