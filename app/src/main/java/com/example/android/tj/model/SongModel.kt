@@ -11,7 +11,8 @@ class SongModel {
     private val dao = RoomDatabaseClient.getInstance(TJApplication.instance).songDao()
 
     fun getById(id: String): Song {
-        return Song(id,
+        return Song(
+                id,
                 dao.getData0ById(id),
                 dao.getData1ById(id),
                 dao.getData2ById(id),

@@ -29,9 +29,10 @@ class FrameActivity : AppCompatActivity() {
 
             var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj3.jpg")
             @SuppressLint("DefaultLocale")
-            val frameFile = String.format("%s-%03d.jpg", status.md5, status
-                    .currentPosition /
-                    1000 / 5 + 1)
+            val frameFile = String.format(
+                    "%s-%03d.jpg", status.md5, status
+                                                       .currentPosition /
+                                               1000 / 5 + 1)
             val fullPath = "$TJ_DIR_IMG/$frameFile"
             val f = File(fullPath)
             if (f.exists()) {
@@ -46,7 +47,8 @@ class FrameActivity : AppCompatActivity() {
         setContentView(R.layout.activity_frame)
         frameView = findViewById(R.id.imageView)
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                messageReceiver,
                 IntentFilter(SERVICE_RESULT))
     }
 

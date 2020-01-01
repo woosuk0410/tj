@@ -16,7 +16,7 @@ class TJServiceSongMetadataList(val list: List<SongMetadata>) {
         other as TJServiceSongMetadataList
 
         return list.size == other.list.size &&
-                list.zip(other.list).all { (m1, m2) -> m1.id == m2.id }
+               list.zip(other.list).all { (m1, m2) -> m1.id == m2.id }
     }
 
     fun fileNamesWithIdx(): List<String> {

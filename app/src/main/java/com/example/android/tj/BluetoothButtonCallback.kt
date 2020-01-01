@@ -6,7 +6,8 @@ import android.util.Pair
 import android.view.KeyEvent
 import java.util.*
 
-class BluetoothButtonCallback internal constructor(private val nodes: Nodes) : MediaSessionCompat.Callback() {
+class BluetoothButtonCallback internal constructor(private val nodes: Nodes) :
+        MediaSessionCompat.Callback() {
 
     private val eventList = ArrayList<Pair<Int, Long>>()
 
@@ -24,7 +25,8 @@ class BluetoothButtonCallback internal constructor(private val nodes: Nodes) : M
 
         if (eventList.size < 3) return
 
-        val mostRecent = eventList.subList(eventList.size - 3, eventList
+        val mostRecent = eventList.subList(
+                eventList.size - 3, eventList
                 .size)
 
         if (mostRecent.stream().filter { event -> event.first == keyCode }.count() >= 3) {
@@ -38,20 +40,21 @@ class BluetoothButtonCallback internal constructor(private val nodes: Nodes) : M
     }
 
     override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
-        val keyEvent = mediaButtonEvent.getParcelableExtra<KeyEvent>("android.intent.extra" + ".KEY_EVENT")
+        val keyEvent = mediaButtonEvent
+                .getParcelableExtra<KeyEvent>("android.intent.extra" + ".KEY_EVENT")
         val action = keyEvent.action
         if (action == KeyEvent.ACTION_UP) {
             val keyCode = keyEvent.keyCode
             when (keyCode) {
-                KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                KeyEvent.KEYCODE_MEDIA_PLAY     -> {
                     nodes.play()
                     eventList.clear()
                 }
-                KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                KeyEvent.KEYCODE_MEDIA_PAUSE    -> {
                     nodes.pause()
                     eventList.clear()
                 }
-                KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                KeyEvent.KEYCODE_MEDIA_NEXT     -> {
                     nodes.next()
                     maybeShuffle(keyCode)
                 }
@@ -59,7 +62,7 @@ class BluetoothButtonCallback internal constructor(private val nodes: Nodes) : M
                     nodes.previous()
                     maybeShuffle(keyCode)
                 }
-                else -> return super.onMediaButtonEvent(mediaButtonEvent)
+                else                            -> return super.onMediaButtonEvent(mediaButtonEvent)
             }
         }
         return super.onMediaButtonEvent(mediaButtonEvent)

@@ -17,6 +17,8 @@ interface TJServiceBroadcastReceiver {
         val intentFilter = IntentFilter()
         intentActions.forEach { intentFilter.addAction(it) }
 
-        context?.let { LocalBroadcastManager.getInstance(it).registerReceiver(receiver, intentFilter) }
+        context?.let {
+            LocalBroadcastManager.getInstance(it).registerReceiver(receiver, intentFilter)
+        }
     }
 }

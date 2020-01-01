@@ -56,7 +56,8 @@ class MainActivity : AppCompatActivity() {
         seekBar = findViewById(R.id.seekBar)
         nowPlaying = findViewById(R.id.now_playing)
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                messageReceiver,
                 IntentFilter(SERVICE_RESULT))
 
 

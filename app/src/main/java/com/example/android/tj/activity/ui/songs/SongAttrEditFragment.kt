@@ -53,8 +53,9 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?): View? {
 
         registerBroadCastReceiver(activity)
 
@@ -81,14 +82,17 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
     fun onSave(view: View) {
         val root = view.rootView
         val priorityTextView = root.findViewById<TextView>(R.id.metadata_priority_value_v2)
-        val newMetadata = SongMetadata(currentMetadata.id, currentMetadata.title, Integer.parseInt(priorityTextView.text.toString()))
+        val newMetadata = SongMetadata(
+                currentMetadata.id, currentMetadata.title,
+                Integer.parseInt(priorityTextView.text.toString()))
         GlobalScope.launch {
             metadataModel.insert(newMetadata) { success ->
                 val msg = if (success) "Done" else "Failed"
                 if (success) {
                     patchInMemoryMetadata(newMetadata)
                 }
-                val snackBar = Snackbar.make(root.findViewById(R.id.metadata_save_v2), msg,
+                val snackBar = Snackbar.make(
+                        root.findViewById(R.id.metadata_save_v2), msg,
                         Snackbar.LENGTH_SHORT)
                 snackBar.show()
             }

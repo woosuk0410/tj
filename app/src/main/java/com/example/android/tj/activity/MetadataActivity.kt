@@ -56,7 +56,8 @@ class MetadataActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_metadata)
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                messageReceiver,
                 IntentFilter(SERVICE_ANSWER))
 
         // TODO: remove query by position
@@ -73,21 +74,26 @@ class MetadataActivity : AppCompatActivity() {
     // should remove after making everything go through hash
     private fun queryMetadata(arg: Int) {
         val intent = Intent(this, TJService::class.java)
-        intent.putExtra(SERVICE_CMD, TJServiceCommand(Constants.SERVICE_QUERY_METADATA, arg)
+        intent.putExtra(
+                SERVICE_CMD, TJServiceCommand(Constants.SERVICE_QUERY_METADATA, arg)
                 .toString())
         startService(intent)
     }
 
     private fun queryMetadataByHash(hash: String) {
         val intent = Intent(this, TJService::class.java)
-        intent.putExtra(SERVICE_CMD, TJServiceCommand(Constants.SERVICE_QUERY_METADATA_BY_HASH,
+        intent.putExtra(
+                SERVICE_CMD, TJServiceCommand(
+                Constants.SERVICE_QUERY_METADATA_BY_HASH,
                 hash).toString())
         startService(intent)
     }
 
     private fun patchInMemoryMetadata(metadata: SongMetadata) {
         val intent = Intent(this, TJService::class.java)
-        intent.putExtra(SERVICE_CMD, TJServiceCommand(SERVICE_PATCH_METADATA, metadata
+        intent.putExtra(
+                SERVICE_CMD, TJServiceCommand(
+                SERVICE_PATCH_METADATA, metadata
                 .toString()).toString())
         startService(intent)
     }
@@ -95,14 +101,17 @@ class MetadataActivity : AppCompatActivity() {
     fun onSave(view: View) {
 
         val priorityTextView = findViewById<TextView>(R.id.metadata_priority_value)
-        val newMetadata = SongMetadata(currentMetadata.id, currentMetadata.title, Integer.parseInt(priorityTextView.text.toString()))
+        val newMetadata = SongMetadata(
+                currentMetadata.id, currentMetadata.title,
+                Integer.parseInt(priorityTextView.text.toString()))
         GlobalScope.launch {
             metadataModel.insert(newMetadata) { success ->
                 val msg = if (success) "Done" else "Failed"
                 if (success) {
                     patchInMemoryMetadata(newMetadata)
                 }
-                val snackBar = Snackbar.make(findViewById(R.id.metadata_save), msg,
+                val snackBar = Snackbar.make(
+                        findViewById(R.id.metadata_save), msg,
                         Snackbar.LENGTH_SHORT)
                 snackBar.show()
             }

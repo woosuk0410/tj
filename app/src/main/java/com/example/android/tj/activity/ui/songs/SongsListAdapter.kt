@@ -18,10 +18,11 @@ import com.example.android.tj.model.TJServiceSongMetadataList
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 
-class SongsListAdapter(private val fragment: Fragment,
-                       private val viewManager: RecyclerView.LayoutManager,
-                       private val metadataList: TJServiceSongMetadataList,
-                       private val targetListMode: CurrentListMode = CurrentListMode.Normal) :
+class SongsListAdapter(
+        private val fragment: Fragment,
+        private val viewManager: RecyclerView.LayoutManager,
+        private val metadataList: TJServiceSongMetadataList,
+        private val targetListMode: CurrentListMode = CurrentListMode.Normal) :
         RecyclerView.Adapter<SongsListAdapter.SongsListViewHolder>(), TJServiceUtil {
 
     // Provide a reference to the views for each data item
@@ -36,8 +37,9 @@ class SongsListAdapter(private val fragment: Fragment,
 
 
     // Create new views (invoked by the layout manager)
-    override fun onCreateViewHolder(parent: ViewGroup,
-                                    viewType: Int): SongsListViewHolder {
+    override fun onCreateViewHolder(
+            parent: ViewGroup,
+            viewType: Int): SongsListViewHolder {
         // create a new view
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.individual_song_content, parent, false)
@@ -58,7 +60,9 @@ class SongsListAdapter(private val fragment: Fragment,
 
         holder.songNameTextView.setOnClickListener {
             run {
-                sendCmdToTJService(fragment.activity, TJServiceCommand(Constants.SERVICE_CMD_SWITCH_TARGET_LIST, targetListMode.value))
+                sendCmdToTJService(
+                        fragment.activity, TJServiceCommand(
+                        Constants.SERVICE_CMD_SWITCH_TARGET_LIST, targetListMode.value))
                 playFromHash(fragment.activity, song.id)
                 viewManager.scrollToPosition(0)
             }
@@ -69,7 +73,8 @@ class SongsListAdapter(private val fragment: Fragment,
                 val action = if (fragment is SongsFragment)
                     SongsFragmentDirections.actionNavigationSongsToSongAttrEditFragment(song.id)
                 else
-                    SelectedSongsFragmentDirections.actionSelectedSongsToSongAttrEditFragment(song.id)
+                    SelectedSongsFragmentDirections.actionSelectedSongsToSongAttrEditFragment(
+                            song.id)
                 view.findNavController().navigate(action)
                 true
             }

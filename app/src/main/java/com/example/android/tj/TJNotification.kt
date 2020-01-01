@@ -16,7 +16,8 @@ import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.android.tj.activity.MainActivityV2
 import java.util.*
 
-class TJNotification internal constructor(private val nodes: Nodes, private val tjService: TJService) : BroadcastReceiver() {
+class TJNotification internal constructor(
+        private val nodes: Nodes, private val tjService: TJService) : BroadcastReceiver() {
 
 
     private val playAction: NotificationCompat.Action
@@ -27,7 +28,8 @@ class TJNotification internal constructor(private val nodes: Nodes, private val 
 
     internal val notification: Notification
         get() {
-            val notificationBuilder = NotificationCompat.Builder(tjService,
+            val notificationBuilder = NotificationCompat.Builder(
+                    tjService,
                     NOTIFICATION_CHANNEL_ID)
 
             val bitmap = nodes.bitMap
@@ -108,9 +110,9 @@ class TJNotification internal constructor(private val nodes: Nodes, private val 
         val action = intent.action
         when (Objects.requireNonNull(action)) {
             ACTION_PAUSE -> nodes.pause()
-            ACTION_PLAY -> nodes.play()
-            ACTION_NEXT -> nodes.next()
-            ACTION_PREV -> nodes.previous()
+            ACTION_PLAY  -> nodes.play()
+            ACTION_NEXT  -> nodes.next()
+            ACTION_PREV  -> nodes.previous()
         }
     }
 

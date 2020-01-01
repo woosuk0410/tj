@@ -4,7 +4,8 @@ import com.google.gson.Gson
 
 class TJServiceStatus(
         @Deprecated("to be removed")
-        val fileNamesWithIdx: List<String>, val duration: Int, val currentPosition: Int, val nowPlaying: String, val isPlaying: Boolean, val md5: String) {
+        val fileNamesWithIdx: List<String>, val duration: Int, val currentPosition: Int,
+        val nowPlaying: String, val isPlaying: Boolean, val md5: String) {
 
     override fun toString(): String {
         return Gson().toJson(this)

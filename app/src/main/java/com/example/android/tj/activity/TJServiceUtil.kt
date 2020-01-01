@@ -20,7 +20,8 @@ interface TJServiceUtil {
 
     fun playFromHash(activity: Activity?, hash: String) {
         val intent = Intent(activity, TJService::class.java)
-        intent.putExtra(Constants.SERVICE_CMD, TJServiceCommand(Constants.SERVICE_CMD_PLAY_FROM_HASH, hash)
+        intent.putExtra(
+                Constants.SERVICE_CMD, TJServiceCommand(Constants.SERVICE_CMD_PLAY_FROM_HASH, hash)
                 .toString())
         activity?.startService(intent)
     }

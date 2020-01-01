@@ -22,7 +22,8 @@ import com.example.android.tj.model.TJServiceSongMetadataList
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.android.synthetic.main.activity_main_v2.*
 
-class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, SearchView.OnQueryTextListener, SearchView.OnCloseListener {
+class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
+                      SearchView.OnQueryTextListener, SearchView.OnCloseListener {
 
     private lateinit var model: SongsViewModel
     private lateinit var recyclerView: RecyclerView
@@ -32,7 +33,8 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, Sea
         override fun onReceive(context: Context, intent: Intent) {
             when (viewMode) {
                 ViewMode.NORMAL -> {
-                    val status = intent.getStringExtra(Constants.SERVICE_RESULT_METADATA_NORMAL_LIST)
+                    val status = intent
+                            .getStringExtra(Constants.SERVICE_RESULT_METADATA_NORMAL_LIST)
                     status?.let {
                         val metadataList = TJServiceSongMetadataList.fromJson(it)
                         val adapter = recyclerView.adapter
@@ -46,7 +48,8 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, Sea
                         }
                     }
 
-                    val selectedListStr = intent.getStringExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST)
+                    val selectedListStr = intent
+                            .getStringExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST)
                     selectedListStr?.let {
                         val metadataList = TJServiceSongMetadataList.fromJson(it)
                         if (metadataList.list.isNotEmpty()) {
@@ -54,7 +57,7 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, Sea
                         }
                     }
                 }
-                ViewMode.QUERY -> {
+                ViewMode.QUERY  -> {
                     val searchResultStr = intent.getStringExtra(Constants.SERVICE_ANSWER_SEARCH)
                     searchResultStr?.let {
                         model.songsMetadataList.value = TJServiceSongMetadataList.fromJson(it)
@@ -63,7 +66,8 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, Sea
             }
         }
     }
-    override val intentActions: List<String> = listOf(Constants.SERVICE_RESULT, Constants.SERVICE_ANSWER)
+    override val intentActions: List<String> = listOf(
+            Constants.SERVICE_RESULT, Constants.SERVICE_ANSWER)
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -108,7 +112,8 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, Sea
         inflater.inflate(R.menu.menu_songs_fragment, menu)
 
         val selectedList = menu.findItem(R.id.selected_list).actionView
-        val notificationView = selectedList.findViewById<Button>(R.id.selected_songs_count_notification)
+        val notificationView = selectedList
+                .findViewById<Button>(R.id.selected_songs_count_notification)
         selectedCountButton = notificationView
         notificationView.text = ""
         selectedCountButton.setOnClickListener {
@@ -129,7 +134,7 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver, Sea
                     searchView.setQuery(lastQueryText, false)
                 }
             }
-            else -> {
+            else           -> {
             }
         }
     }

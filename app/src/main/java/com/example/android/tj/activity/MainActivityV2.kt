@@ -25,8 +25,9 @@ class MainActivityV2 : AppCompatActivity(), TJServiceUtil {
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(setOf(
-                R.id.navigation_playing, R.id.navigation_songs, R.id.navigation_gallery))
+        val appBarConfiguration = AppBarConfiguration(
+                setOf(
+                        R.id.navigation_playing, R.id.navigation_songs, R.id.navigation_gallery))
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
     }

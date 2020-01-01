@@ -39,7 +39,8 @@ class SearchableActivity : AppCompatActivity() {
             adapter.addAll(currentResult.fileNames)
             adapter.notifyDataSetChanged()
 
-            val snackbar = Snackbar.make(findViewById<View>(R.id.list_searchable_files),
+            val snackbar = Snackbar.make(
+                    findViewById<View>(R.id.list_searchable_files),
                     currentResult.hashes.size.toString() + " found.", Snackbar.LENGTH_SHORT)
             snackbar.show()
         }
@@ -50,7 +51,8 @@ class SearchableActivity : AppCompatActivity() {
 
     private fun playFromHash(hash: String) {
         val intent = Intent(this, TJService::class.java)
-        intent.putExtra(SERVICE_CMD, TJServiceCommand(SERVICE_CMD_PLAY_FROM_HASH, hash)
+        intent.putExtra(
+                SERVICE_CMD, TJServiceCommand(SERVICE_CMD_PLAY_FROM_HASH, hash)
                 .toString())
         startService(intent)
     }
@@ -59,7 +61,8 @@ class SearchableActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_searchable)
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                messageReceiver,
                 IntentFilter(SERVICE_ANSWER))
 
         // list view

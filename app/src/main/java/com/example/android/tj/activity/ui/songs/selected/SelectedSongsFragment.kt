@@ -30,7 +30,8 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
 
     override val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val selectedListStr = intent.getStringExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST)
+            val selectedListStr = intent
+                    .getStringExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST)
             selectedListStr?.let {
                 val metadataList = TJServiceSongMetadataList.fromJson(it)
                 val adapter = recyclerView.adapter
@@ -47,8 +48,9 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
     }
     override val intentActions: List<String> = listOf(Constants.SERVICE_RESULT)
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?): View? {
 
         val root = inflater.inflate(R.layout.fragment_songs, container, false)
         val viewManager = LinearLayoutManager(activity)
@@ -58,7 +60,8 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
         }
         model = ViewModelProviders.of(this).get(SongsViewModel::class.java)
         val metadataListObserver = Observer<TJServiceSongMetadataList> {
-            recyclerView.swapAdapter(SongsListAdapter(this, viewManager, it, CurrentListMode.Selected), false)
+            recyclerView.swapAdapter(
+                    SongsListAdapter(this, viewManager, it, CurrentListMode.Selected), false)
         }
         model.songsMetadataList.observe(this, metadataListObserver)
 
@@ -86,7 +89,9 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
         val play = menu.findItem(R.id.selected_songs_menu_play)
         play.setOnMenuItemClickListener {
             run {
-                sendCmdToTJService(activity, TJServiceCommand(Constants.SERVICE_CMD_SWITCH_TARGET_LIST, CurrentListMode.Selected.value))
+                sendCmdToTJService(
+                        activity, TJServiceCommand(
+                        Constants.SERVICE_CMD_SWITCH_TARGET_LIST, CurrentListMode.Selected.value))
                 sendCmdToTJService(activity, TJServiceCommand(Constants.SERVICE_CMD_PLAY_FROM_TOP))
                 true
             }
@@ -95,8 +100,11 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
         val clear = menu.findItem(R.id.selected_songs_menu_clear)
         clear.setOnMenuItemClickListener {
             run {
-                sendCmdToTJService(activity, TJServiceCommand(Constants.SERVICE_CLEAR_SELECTED_LIST))
-                sendCmdToTJService(activity, TJServiceCommand(Constants.SERVICE_CMD_SWITCH_TARGET_LIST, CurrentListMode.Normal.value))
+                sendCmdToTJService(
+                        activity, TJServiceCommand(Constants.SERVICE_CLEAR_SELECTED_LIST))
+                sendCmdToTJService(
+                        activity, TJServiceCommand(
+                        Constants.SERVICE_CMD_SWITCH_TARGET_LIST, CurrentListMode.Normal.value))
                 true
             }
         }
