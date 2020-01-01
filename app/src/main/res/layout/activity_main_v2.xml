@@ -13,8 +13,8 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/nav_view"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="1dp"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="1dp"
         app:defaultNavHost="true"
         app:navGraph="@navigation/mobile_navigation" />
 
