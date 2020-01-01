@@ -20,7 +20,7 @@ internal class Nodes(tjService: TJService) {
     var selectedList: List<SongMetadata> = emptyList()
     var currentList: List<SongMetadata>
         get() {
-            return if (currentListMode == CurrentListMode.Normal) normalList else selectedList
+            return if (currentListMode == CurrentListMode.Normal || selectedList.isEmpty()) normalList else selectedList
         }
         set(value) {
             if (currentListMode == CurrentListMode.Normal) {
@@ -69,9 +69,9 @@ internal class Nodes(tjService: TJService) {
         player = PlayerWrapper()
         GlobalScope.launch {
             metadataModel.getAll { list ->
-                currentList = list
+                normalList = list
                 priorityShuffle()
-                start() // similar to Constants.SERVICE_CMD_START in main activity. whoever gets here actually start the first song
+                start()
             }
         }
 
@@ -126,7 +126,7 @@ internal class Nodes(tjService: TJService) {
     }
 
     fun getNodeByHash(hash: String): SongMetadata? {
-        return currentList.find { it.id == hash }
+        return normalList.find { it.id == hash }
     }
 
     fun sortByTitle() {
