@@ -34,7 +34,7 @@ class NowPlayingFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver
     private val uiUpdateCallback = object : Runnable {
         override fun run() {
             val syncCmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC)
-            val syncMetadataCmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC_METADATA)
+            val syncMetadataCmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC_SONGS_DATA)
             sendCmdToTJService(activity, syncCmd, syncMetadataCmd)
             handler.postDelayed(this, 1000)
         }

@@ -16,7 +16,6 @@ import com.example.android.tj.activity.TJServiceBroadcastReceiver
 import com.example.android.tj.activity.TJServiceUtil
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.MetadataModel
-import com.example.android.tj.model.TJServiceCommand
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
@@ -59,7 +58,7 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
 
         registerBroadCastReceiver(activity)
 
-        queryMetadataByHash(args.hash)
+        queryMetadataByHash(activity, args.hash)
 
         val navBar = activity?.findViewById<BottomNavigationView>(R.id.nav_view)
         navBar?.visibility = View.GONE
@@ -67,16 +66,6 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_song_attr_edit, container, false)
         return rootView
-    }
-
-    private fun queryMetadataByHash(hash: String) {
-        val cmd = TJServiceCommand(Constants.SERVICE_QUERY_METADATA_BY_HASH, hash)
-        sendCmdToTJService(activity, cmd)
-    }
-
-    private fun patchInMemoryMetadata(metadata: SongMetadata) {
-        val cmd = TJServiceCommand(Constants.SERVICE_PATCH_METADATA, metadata.toString())
-        sendCmdToTJService(activity, cmd)
     }
 
     fun onSave(view: View) {
@@ -89,7 +78,7 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
             metadataModel.insert(newMetadata) { success ->
                 val msg = if (success) "Done" else "Failed"
                 if (success) {
-                    patchInMemoryMetadata(newMetadata)
+                    patchInMemoryMetadata(activity, newMetadata)
                 }
                 val snackBar = Snackbar.make(
                         root.findViewById(R.id.metadata_save_v2), msg,

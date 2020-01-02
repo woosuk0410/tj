@@ -12,16 +12,20 @@ import com.example.android.tj.CurrentListMode
 import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceUtil
 import com.example.android.tj.activity.ui.songs.selected.SelectedSongsFragmentDirections
-import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.TJServiceCommand
-import com.example.android.tj.model.TJServiceSongMetadataList
+import com.example.android.tj.model.TJServiceSongsSyncData
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.*
 
 class SongsListAdapter(
         private val fragment: Fragment,
         private val viewManager: RecyclerView.LayoutManager,
-        private val metadataList: TJServiceSongMetadataList,
+        private val syncData: TJServiceSongsSyncData,
         private val targetListMode: CurrentListMode = CurrentListMode.Normal) :
         RecyclerView.Adapter<SongsListAdapter.SongsListViewHolder>(), TJServiceUtil {
 
@@ -30,8 +34,10 @@ class SongsListAdapter(
     // you provide access to all the views for a data item in a view holder.
     // Each data item is just a string in this case that is shown in a TextView.
     class SongsListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val songNameTextView: TextView = view.findViewById(R.id.song_name_v2)
-        val songPriorityView: TextView = view.findViewById(R.id.song_priority_v2)
+        val songNameTextView: TextView = view.findViewById(R.id.song_name)
+        val songPriorityView: TextView = view.findViewById(R.id.song_priority)
+        val songHistoryCountView: TextView = view.findViewById(R.id.song_history_count)
+        val songHLastPlayedAtView: TextView = view.findViewById(R.id.song_history_last_played_at)
         val selectButton: MaterialButton = view.findViewById(R.id.button_add_to_selected_list)
     }
 
@@ -53,10 +59,23 @@ class SongsListAdapter(
     override fun onBindViewHolder(holder: SongsListViewHolder, position: Int) {
         // - get element from the dataset at this position
         // - replace the contents of the view with that element
-        holder.songNameTextView.text = metadataList.fileNamesWithIdx()[position]
+        holder.songNameTextView.text = syncData.fileNamesWithIdx()[position]
 
-        val song = metadataList.list[position]
-        holder.songPriorityView.text = song.priority.toString()
+        val song = syncData.list[position]
+
+        holder.songHistoryCountView.text = "c:${syncData.histories[song.id]?.size ?: 0}"
+
+        val formatter =
+                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                        .withLocale(Locale.US)
+                        .withZone(ZoneId.systemDefault())
+        val lastPlayedAt = syncData.histories[song.id]
+                ?.maxBy { Instant.parse(it.playedAt).epochSecond }
+        holder.songHLastPlayedAtView.text = lastPlayedAt?.let {
+            formatter.format(Instant.parse(it.playedAt))
+        } ?: ""
+
+        holder.songPriorityView.text = "p:${song.priority}"
 
         holder.songNameTextView.setOnClickListener {
             run {
@@ -82,7 +101,7 @@ class SongsListAdapter(
 
         holder.selectButton.setOnClickListener {
             run {
-                addToSelectedList(song)
+                addToSelectedList(fragment.activity, song)
                 val snackBar = Snackbar.make(it, "adding ${song.title}...", Snackbar.LENGTH_SHORT)
                 snackBar.show()
             }
@@ -90,10 +109,5 @@ class SongsListAdapter(
     }
 
     // Return the size of the dataset (invoked by the layout manager)
-    override fun getItemCount() = metadataList.list.size
-
-    private fun addToSelectedList(metadata: SongMetadata) {
-        val cmd = TJServiceCommand(Constants.SERVICE_ADD_TO_SELECTED_LIST, metadata.toString())
-        sendCmdToTJService(fragment.activity, cmd)
-    }
+    override fun getItemCount() = syncData.list.size
 }

@@ -10,7 +10,7 @@ internal object Constants {
     //for sending to tjservice
     val SERVICE_CMD = "service_cmd"
     val SERVICE_CMD_SYNC = -1 // sync current playing status
-    val SERVICE_CMD_SYNC_METADATA = -11 // sync metadata of all songs
+    val SERVICE_CMD_SYNC_SONGS_DATA = -11 // sync metadata and histories of all songs
     val SERVICE_CMD_PLAY = 1
     val SERVICE_CMD_PAUSE = 2
     val SERVICE_CMD_PRIORITY_SHUFFLE = 3
@@ -34,8 +34,8 @@ internal object Constants {
     /******************** for status update ************************/
     val SERVICE_RESULT = "service_result"
     val SERVICE_RESULT_STATUS = "service_result_status"
-    val SERVICE_RESULT_METADATA_NORMAL_LIST = "service_result_metadata_normal_list"
-    val SERVICE_RESULT_METADATA_SELECTED_LIST = "service_result_metadata_selected_list"
+    val SERVICE_RESULT_SONGS_DATA_WITH_METADATA_NORMAL_LIST = "service_result_songs_data_with_metadata_normal_list"
+    val SERVICE_RESULT_SONGS_DATA_WITH_METADATA_SELECTED_LIST = "service_result_songs_data_with_metadata_selected_list"
 
 
     /******************** for Q & A ************************/

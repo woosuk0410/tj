@@ -21,7 +21,7 @@ import com.example.android.tj.Constants.NOTIFICATION_ID
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.TJServiceCommand
-import com.example.android.tj.model.TJServiceSongMetadataList
+import com.example.android.tj.model.TJServiceSongsSyncData
 import com.example.android.tj.model.TJServiceStatus
 import com.google.gson.Gson
 
@@ -139,9 +139,9 @@ class TJService : Service() {
         }, 5000)
     }
 
-    private fun getSearchResult(query: String): TJServiceSongMetadataList {
+    private fun getSearchResult(query: String): TJServiceSongsSyncData {
         val candidates = nodes.currentList.filter { n -> n.title.contains(query, true) }
-        return TJServiceSongMetadataList(candidates)
+        return TJServiceSongsSyncData(candidates, nodes.histories)
     }
 
     override fun onCreate() {
@@ -196,20 +196,22 @@ class TJService : Service() {
                 Constants.SERVICE_QUERY_SEARCH           -> {
                     val result = getSearchResult(msg.obj as String)
                     val intent = Intent(Constants.SERVICE_ANSWER)
-                    intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toString())
+                    intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toJsonString())
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
-                Constants.SERVICE_CMD_SYNC_METADATA      -> {
-                    val metadataNormalList = TJServiceSongMetadataList(nodes.normalList)
-                    val metadataSelectedList = TJServiceSongMetadataList(nodes.selectedList)
+                Constants.SERVICE_CMD_SYNC_SONGS_DATA    -> {
+                    val dataWithMetadataNormalList = TJServiceSongsSyncData(
+                            nodes.normalList, nodes.histories)
+                    val dataWithMetadataSelectedList = TJServiceSongsSyncData(
+                            nodes.selectedList, nodes.histories)
 
                     val intent = Intent(Constants.SERVICE_RESULT)
                     intent.putExtra(
-                            Constants.SERVICE_RESULT_METADATA_NORMAL_LIST,
-                            metadataNormalList.toString())
+                            Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_NORMAL_LIST,
+                            dataWithMetadataNormalList.toJsonString())
                     intent.putExtra(
-                            Constants.SERVICE_RESULT_METADATA_SELECTED_LIST,
-                            metadataSelectedList.toString())
+                            Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_SELECTED_LIST,
+                            dataWithMetadataSelectedList.toJsonString())
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
                 Constants.SERVICE_CLEAR_SELECTED_LIST    -> {

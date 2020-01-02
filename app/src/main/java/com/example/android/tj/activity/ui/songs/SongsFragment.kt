@@ -17,8 +17,7 @@ import com.example.android.tj.Constants
 import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceBroadcastReceiver
 import com.example.android.tj.activity.TJServiceUtil
-import com.example.android.tj.model.TJServiceCommand
-import com.example.android.tj.model.TJServiceSongMetadataList
+import com.example.android.tj.model.TJServiceSongsSyncData
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.android.synthetic.main.activity_main_v2.*
 
@@ -34,33 +33,35 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
             when (viewMode) {
                 ViewMode.NORMAL -> {
                     val status = intent
-                            .getStringExtra(Constants.SERVICE_RESULT_METADATA_NORMAL_LIST)
+                            .getStringExtra(
+                                    Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_NORMAL_LIST)
                     status?.let {
-                        val metadataList = TJServiceSongMetadataList.fromJson(it)
+                        val syncData = TJServiceSongsSyncData.fromJson(it)
                         val adapter = recyclerView.adapter
                         if (adapter == null) {
-                            model.songsMetadataList.value = metadataList
+                            model.songsSyncData.value = syncData
                         } else {
-                            val currentList = model.songsMetadataList.value
-                            if (currentList != metadataList) {
-                                model.songsMetadataList.value = metadataList
+                            val currentData = model.songsSyncData.value
+                            if (currentData != syncData) {
+                                model.songsSyncData.value = syncData
                             }
                         }
                     }
 
-                    val selectedListStr = intent
-                            .getStringExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST)
-                    selectedListStr?.let {
-                        val metadataList = TJServiceSongMetadataList.fromJson(it)
-                        if (metadataList.list.isNotEmpty()) {
-                            selectedCountButton.text = "${metadataList.list.size}"
+                    val syncDataWithSelectedListStr = intent
+                            .getStringExtra(
+                                    Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_SELECTED_LIST)
+                    syncDataWithSelectedListStr?.let {
+                        val syncData = TJServiceSongsSyncData.fromJson(it)
+                        if (syncData.list.isNotEmpty()) {
+                            selectedCountButton.text = "${syncData.list.size}"
                         }
                     }
                 }
                 ViewMode.QUERY  -> {
                     val searchResultStr = intent.getStringExtra(Constants.SERVICE_ANSWER_SEARCH)
                     searchResultStr?.let {
-                        model.songsMetadataList.value = TJServiceSongMetadataList.fromJson(it)
+                        model.songsSyncData.value = TJServiceSongsSyncData.fromJson(it)
                     }
                 }
             }
@@ -88,10 +89,10 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
         // subscribe to live data
         model =
                 ViewModelProviders.of(this).get(SongsViewModel::class.java)
-        val metadataListObserver = Observer<TJServiceSongMetadataList> {
+        val metadataListObserver = Observer<TJServiceSongsSyncData> {
             recyclerView.swapAdapter(SongsListAdapter(this, viewManager, it), false)
         }
-        model.songsMetadataList.observe(this, metadataListObserver)
+        model.songsSyncData.observe(this, metadataListObserver)
 
         registerBroadCastReceiver(activity)
 
@@ -143,7 +144,7 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
     override fun onQueryTextChange(newText: String?): Boolean {
         viewMode = ViewMode.QUERY
         lastQueryText = newText
-        newText?.let { sendSearchQuery(it) }
+        newText?.let { sendSearchQuery(activity, it) }
 
         return true
     }
@@ -155,10 +156,5 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
     override fun onClose(): Boolean {
         viewMode = ViewMode.NORMAL
         return true
-    }
-
-    private fun sendSearchQuery(query: String) {
-        val cmd = TJServiceCommand(Constants.SERVICE_QUERY_SEARCH, query)
-        sendCmdToTJService(activity, cmd)
     }
 }

@@ -2,11 +2,11 @@ package com.example.android.tj.activity.ui.songs
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.android.tj.model.TJServiceSongMetadataList
+import com.example.android.tj.model.TJServiceSongsSyncData
 
 class SongsViewModel : ViewModel() {
 
-    val songsMetadataList: MutableLiveData<TJServiceSongMetadataList> by lazy {
-        MutableLiveData<TJServiceSongMetadataList>()
+    val songsSyncData: MutableLiveData<TJServiceSongsSyncData> by lazy {
+        MutableLiveData<TJServiceSongsSyncData>()
     }
 }

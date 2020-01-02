@@ -19,7 +19,7 @@ import com.example.android.tj.activity.TJServiceUtil
 import com.example.android.tj.activity.ui.songs.SongsListAdapter
 import com.example.android.tj.activity.ui.songs.SongsViewModel
 import com.example.android.tj.model.TJServiceCommand
-import com.example.android.tj.model.TJServiceSongMetadataList
+import com.example.android.tj.model.TJServiceSongsSyncData
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 //TODO: de-duplicate with SongsFragment
@@ -30,17 +30,17 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
 
     override val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val selectedListStr = intent
-                    .getStringExtra(Constants.SERVICE_RESULT_METADATA_SELECTED_LIST)
-            selectedListStr?.let {
-                val metadataList = TJServiceSongMetadataList.fromJson(it)
+            val syncDataWithSelectedListStr = intent
+                    .getStringExtra(Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_SELECTED_LIST)
+            syncDataWithSelectedListStr?.let {
+                val syncData = TJServiceSongsSyncData.fromJson(it)
                 val adapter = recyclerView.adapter
                 if (adapter == null) {
-                    model.songsMetadataList.value = metadataList
+                    model.songsSyncData.value = syncData
                 } else {
-                    val currentList = model.songsMetadataList.value
-                    if (currentList != metadataList) {
-                        model.songsMetadataList.value = metadataList
+                    val currentData = model.songsSyncData.value
+                    if (currentData != syncData) {
+                        model.songsSyncData.value = syncData
                     }
                 }
             }
@@ -59,15 +59,15 @@ class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastRecei
             layoutManager = viewManager
         }
         model = ViewModelProviders.of(this).get(SongsViewModel::class.java)
-        val metadataListObserver = Observer<TJServiceSongMetadataList> {
+        val metadataListObserver = Observer<TJServiceSongsSyncData> {
             recyclerView.swapAdapter(
                     SongsListAdapter(this, viewManager, it, CurrentListMode.Selected), false)
         }
-        model.songsMetadataList.observe(this, metadataListObserver)
+        model.songsSyncData.observe(this, metadataListObserver)
 
         registerBroadCastReceiver(activity)
 
-        val cmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC_METADATA)
+        val cmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC_SONGS_DATA)
         sendCmdToTJService(activity, cmd)
 
         val navBar = activity?.findViewById<BottomNavigationView>(R.id.nav_view)

@@ -4,17 +4,23 @@ import android.app.Notification
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import com.example.android.tj.Contexts.singleThreadContext
+import com.example.android.tj.database.History
 import com.example.android.tj.database.SongMetadata
+import com.example.android.tj.model.HistoryModel
 import com.example.android.tj.model.MetadataModel
 import com.example.android.tj.model.SongModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.Instant
 import java.util.*
 
 
-internal class Nodes(tjService: TJService) {
+internal class Nodes(private val tjService: TJService) {
 
     var normalList: List<SongMetadata> = emptyList()
     var selectedList: List<SongMetadata> = emptyList()
@@ -38,7 +44,10 @@ internal class Nodes(tjService: TJService) {
 
     private val metadataModel: MetadataModel = MetadataModel()
     private val songModel: SongModel = SongModel()
+    private val historyModel: HistoryModel = HistoryModel()
 
+    // TODO: currently this is passed as sync data all the time, should make it on demand
+    var histories: Map<String, List<History>> = emptyMap()
 
     var hasStarted = false // if the player finished loading the 1st resource
 
@@ -74,7 +83,9 @@ internal class Nodes(tjService: TJService) {
                 start()
             }
         }
-
+        GlobalScope.launch {
+            historyModel.getAll { histories = it.groupBy { history -> history.id } }
+        }
     }
 
     private fun forwardNode(): SongMetadata {
@@ -183,6 +194,7 @@ internal class Nodes(tjService: TJService) {
 
         GlobalScope.launch(singleThreadContext) {
             val n = currentNode()
+            recordHistory(n)
             songModel.getById(n.id) { song ->
                 song?.let {
                     PlayerSemaphore.lock.acquire()
@@ -198,6 +210,7 @@ internal class Nodes(tjService: TJService) {
                     player.setOnCompletionListener { _ ->
                         GlobalScope.launch(singleThreadContext) {
                             val n2 = forwardNode()
+                            recordHistory(n2)
                             songModel.getById(n2.id) { songOp ->
                                 songOp?.let { it ->
                                     PlayerSemaphore.lock.acquire()
@@ -211,6 +224,30 @@ internal class Nodes(tjService: TJService) {
                 }
             }
         }
+    }
+
+    private suspend fun recordHistory(song: SongMetadata) {
+        val history = History(song.id, Instant.now().toString())
+        historyModel.insert(history) { success ->
+            run {
+                val msg = if (success) "new history saved: ${song.title}" else "history saving failed: ${song.title}"
+                if (success) {
+                    updateHistory(history)
+                }
+                Handler(Looper.getMainLooper()).post {
+                    val toast = Toast
+                            .makeText(tjService.applicationContext, msg, Toast.LENGTH_SHORT)
+                    toast.show()
+                }
+            }
+        }
+    }
+
+    private fun updateHistory(history: History) {
+        val newHistoryList = histories.getOrElse(history.id) {
+            emptyList()
+        } + history
+        histories = histories + mapOf(Pair(history.id, newHistoryList))
     }
 
     companion object {

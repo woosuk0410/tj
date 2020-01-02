@@ -28,19 +28,46 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/song_name_v2"
+                android:id="@+id/song_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/name"
                 android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/song_priority_v2"
+            <LinearLayout
+                android:id="@+id/individual_songs_sync_data"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/priority"
-                android:textSize="12sp"
-                app:layout_constraintTop_toBottomOf="@+id/song_name_v2" />
+                android:orientation="horizontal"
+                android:textAlignment="viewStart">
+
+                <TextView
+                    android:id="@+id/song_priority"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/priority"
+                    android:textSize="12sp"
+                    app:layout_constraintTop_toBottomOf="@+id/song_name" />
+
+                <TextView
+                    android:id="@+id/song_history_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/history_count"
+                    android:textSize="12sp"
+                    app:layout_constraintTop_toBottomOf="@+id/song_name" />
+
+                <TextView
+                    android:id="@+id/song_history_last_played_at"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/last_played_at"
+                    android:textSize="12sp"
+                    app:layout_constraintTop_toBottomOf="@+id/song_name" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- **************  right side  **************** -->

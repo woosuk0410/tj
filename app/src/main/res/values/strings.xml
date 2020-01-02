@@ -21,4 +21,6 @@
 
     <string name="selected_songs_menu_play">Play</string>
     <string name="selected_songs_menu_clear">Clear</string>
+    <string name="history_count">Count</string>
+    <string name="last_played_at">Last Played at</string>
 </resources>
