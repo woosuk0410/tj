@@ -7,6 +7,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import com.example.android.tj.Logging
 import com.example.android.tj.database.History
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.CurrentListMode
@@ -21,7 +22,7 @@ import java.time.Instant
 import java.util.*
 
 
-internal class Nodes(private val tjService: TJService) {
+internal class Nodes(private val tjService: TJService) : Logging {
 
     var normalList: List<SongMetadata> = emptyList()
     var selectedList: List<SongMetadata> = emptyList()
@@ -194,8 +195,13 @@ internal class Nodes(private val tjService: TJService) {
         }
 
         GlobalScope.launch(singleThreadContext) {
+            if (player.isPlaying) {
+                // switching to a different song while the previous one is still playing,
+                // playing time should be accumulated
+                player.accumulatePlayedSoFar()
+            }
+            maybeRecordHistory()
             val n = currentNode()
-            recordHistory(n)
             songModel.getById(n.id) { song ->
                 song?.let {
                     PlayerSemaphore.lock.acquire()
@@ -204,26 +210,28 @@ internal class Nodes(private val tjService: TJService) {
                             ByteArrayMediaDataSource(
                                     it.data()))
                     player.prepareAsync()
+                    player.recordingSong = n
 
                     // setOnPreparedListener and setOnPreparedListener only need to be called once
-                    player
-                            .setOnPreparedListener { player ->
+                    player.setOnPreparedListener { player ->
                         player.start()
                         PlayerSemaphore.lock.release()
                     }
-                    player
-                            .setOnCompletionListener { _ ->
+                    player.setOnCompletionListener { _ ->
                         GlobalScope.launch(singleThreadContext) {
+                            // this block should always be triggered by a playing state
+                            // so always accumulate here
+                            player.accumulatePlayedSoFar()
+                            maybeRecordHistory()
                             val n2 = forwardNode()
-                            recordHistory(n2)
                             songModel.getById(n2.id) { songOp ->
                                 songOp?.let { it ->
                                     PlayerSemaphore.lock.acquire()
                                     player.reset()
                                     player.setDataSource(
-                                            ByteArrayMediaDataSource(
-                                                    it.data()))
+                                            ByteArrayMediaDataSource(it.data()))
                                     player.prepareAsync()
+                                    player.recordingSong = n2
                                 }
                             }
                         }
@@ -233,20 +241,28 @@ internal class Nodes(private val tjService: TJService) {
         }
     }
 
-    private suspend fun recordHistory(song: SongMetadata) {
-        val history = History(song.id, Instant.now().toString())
-        historyModel.insert(history) { success ->
-            run {
-                val msg = if (success) "new history saved: ${song.title}" else "history saving failed: ${song.title}"
-                if (success) {
-                    updateHistory(history)
-                }
-                Handler(Looper.getMainLooper()).post {
-                    val toast = Toast
-                            .makeText(tjService.applicationContext, msg, Toast.LENGTH_SHORT)
-                    toast.show()
+    private suspend fun maybeRecordHistory() {
+        val song = player.recordingSong ?: return
+
+        val recordingThresholdSeconds = 60
+        if (player.playedSoFarSeconds >= recordingThresholdSeconds) {
+            log("saving history for ${player.recordingSong?.title}. played ${player.playedSoFarSeconds}s")
+            val history = History(song.id, Instant.now().toString())
+            historyModel.insert(history) { success ->
+                run {
+                    val msg = if (success) "new history saved: ${song.title}" else "history saving failed: ${song.title}"
+                    if (success) {
+                        updateHistory(history)
+                    }
+                    Handler(Looper.getMainLooper()).post {
+                        val toast = Toast
+                                .makeText(tjService.applicationContext, msg, Toast.LENGTH_SHORT)
+                        toast.show()
+                    }
                 }
             }
+        } else {
+            log("no history is saved for ${player.recordingSong?.title}. only played ${player.playedSoFarSeconds}s")
         }
     }
 
