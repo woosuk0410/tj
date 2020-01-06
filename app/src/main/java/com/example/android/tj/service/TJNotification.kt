@@ -3,7 +3,7 @@
  * https://github.com/googlecodelabs/musicplayer-devices/blob/master/final/src/main/java/com
  * /example/android/musicplayercodelab/MediaNotificationManager.java
  */
-package com.example.android.tj
+package com.example.android.tj.service
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -13,6 +13,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.app.NotificationCompat
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
+import com.example.android.tj.R
 import com.example.android.tj.activity.MainActivityV2
 import java.util.*
 
@@ -47,7 +48,8 @@ class TJNotification internal constructor(
                                     .setMediaSession(tjService.mediaSession.sessionToken)
                                     .setShowActionsInCompactView(0, 1, 2)
                     )
-                    .setSmallIcon(R.drawable.ic_music_note_black_24dp)
+                    .setSmallIcon(
+                            R.drawable.ic_music_note_black_24dp)
                     .setContentTitle(nodes.last?.title)
                     .setLargeIcon(bitmap)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -98,10 +100,14 @@ class TJNotification internal constructor(
                 nextIntent)
 
         val filter = IntentFilter()
-        filter.addAction(ACTION_NEXT)
-        filter.addAction(ACTION_PAUSE)
-        filter.addAction(ACTION_PLAY)
-        filter.addAction(ACTION_PREV)
+        filter.addAction(
+                ACTION_NEXT)
+        filter.addAction(
+                ACTION_PAUSE)
+        filter.addAction(
+                ACTION_PLAY)
+        filter.addAction(
+                ACTION_PREV)
 
         tjService.registerReceiver(this, filter)
     }

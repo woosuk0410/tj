@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.service
 
 import android.app.Notification
 import android.graphics.Bitmap
@@ -7,12 +7,13 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import com.example.android.tj.Contexts.singleThreadContext
 import com.example.android.tj.database.History
 import com.example.android.tj.database.SongMetadata
-import com.example.android.tj.model.HistoryModel
-import com.example.android.tj.model.MetadataModel
-import com.example.android.tj.model.SongModel
+import com.example.android.tj.model.CurrentListMode
+import com.example.android.tj.model.database.HistoryModel
+import com.example.android.tj.model.database.MetadataModel
+import com.example.android.tj.model.database.SongModel
+import com.example.android.tj.service.Contexts.singleThreadContext
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -199,15 +200,19 @@ internal class Nodes(private val tjService: TJService) {
                 song?.let {
                     PlayerSemaphore.lock.acquire()
                     player.reset()
-                    player.setDataSource(ByteArrayMediaDataSource(it.data()))
+                    player.setDataSource(
+                            ByteArrayMediaDataSource(
+                                    it.data()))
                     player.prepareAsync()
 
                     // setOnPreparedListener and setOnPreparedListener only need to be called once
-                    player.setOnPreparedListener { player ->
+                    player
+                            .setOnPreparedListener { player ->
                         player.start()
                         PlayerSemaphore.lock.release()
                     }
-                    player.setOnCompletionListener { _ ->
+                    player
+                            .setOnCompletionListener { _ ->
                         GlobalScope.launch(singleThreadContext) {
                             val n2 = forwardNode()
                             recordHistory(n2)
@@ -215,7 +220,9 @@ internal class Nodes(private val tjService: TJService) {
                                 songOp?.let { it ->
                                     PlayerSemaphore.lock.acquire()
                                     player.reset()
-                                    player.setDataSource(ByteArrayMediaDataSource(it.data()))
+                                    player.setDataSource(
+                                            ByteArrayMediaDataSource(
+                                                    it.data()))
                                     player.prepareAsync()
                                 }
                             }

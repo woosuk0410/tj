@@ -31,7 +31,7 @@
         </activity>
 
         <service
-            android:name=".TJService"
+            android:name=".service.TJService"
             android:enabled="true"
             android:exported="false" />
 

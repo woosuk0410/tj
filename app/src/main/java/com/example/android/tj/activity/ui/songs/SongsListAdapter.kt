@@ -8,10 +8,10 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.android.tj.Constants
-import com.example.android.tj.CurrentListMode
 import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceUtil
 import com.example.android.tj.activity.ui.songs.selected.SelectedSongsFragmentDirections
+import com.example.android.tj.model.CurrentListMode
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceSongsSyncData
 import com.google.android.material.button.MaterialButton

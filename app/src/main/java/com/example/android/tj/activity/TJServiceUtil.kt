@@ -3,9 +3,9 @@ package com.example.android.tj.activity
 import android.app.Activity
 import android.content.Intent
 import com.example.android.tj.Constants
-import com.example.android.tj.TJService
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.TJServiceCommand
+import com.example.android.tj.service.TJService
 
 interface TJServiceUtil {
 

@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.service
 
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver

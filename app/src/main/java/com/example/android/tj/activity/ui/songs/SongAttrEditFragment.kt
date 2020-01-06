@@ -15,7 +15,7 @@ import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceBroadcastReceiver
 import com.example.android.tj.activity.TJServiceUtil
 import com.example.android.tj.database.SongMetadata
-import com.example.android.tj.model.MetadataModel
+import com.example.android.tj.model.database.MetadataModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson

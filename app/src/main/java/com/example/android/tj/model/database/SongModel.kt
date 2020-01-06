@@ -1,4 +1,4 @@
-package com.example.android.tj.model
+package com.example.android.tj.model.database
 
 import com.example.android.tj.application.TJApplication
 import com.example.android.tj.database.RoomDatabaseClient
@@ -118,7 +118,8 @@ class SongModel {
 
     suspend fun getById(id: String, callback: (Song?) -> Unit) {
         val job = GlobalScope.async {
-            withTimeoutOrNull(TIMEOUT_DURATION_MILLIS) {
+            withTimeoutOrNull(
+                    TIMEOUT_DURATION_MILLIS) {
                 getById(id)
             }
         }

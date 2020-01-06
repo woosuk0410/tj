@@ -1,4 +1,4 @@
-package com.example.android.tj
+package com.example.android.tj.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -16,10 +16,12 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.android.tj.Constants
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.android.tj.Constants.NOTIFICATION_ID
 import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.database.SongMetadata
+import com.example.android.tj.model.CurrentListMode
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceSongsSyncData
 import com.example.android.tj.model.TJServiceStatus
@@ -70,8 +72,11 @@ class TJService : Service() {
     }
 
     private fun initMediaSession() {
-        mediaSession = MediaSessionCompat(this@TJService, TAG)
-        mediaSession.setCallback(BluetoothButtonCallback(nodes))
+        mediaSession = MediaSessionCompat(
+                this@TJService,
+                TAG)
+        mediaSession.setCallback(
+                BluetoothButtonCallback(nodes))
         mediaSession.setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         mediaSession.isActive = true
@@ -182,9 +187,11 @@ class TJService : Service() {
                     nodes.playFromTop()
                 }
                 Constants.SERVICE_QUERY_METADATA_BY_HASH -> {
-                    val intent = Intent(Constants.SERVICE_ANSWER)
+                    val intent = Intent(
+                            Constants.SERVICE_ANSWER)
                     val metadata = nodes.getNodeByHash(msg.obj as String)
-                    intent.putExtra(Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
+                    intent.putExtra(
+                            Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
                 Constants.SERVICE_PATCH_METADATA         -> {
@@ -195,8 +202,10 @@ class TJService : Service() {
                 }
                 Constants.SERVICE_QUERY_SEARCH           -> {
                     val result = getSearchResult(msg.obj as String)
-                    val intent = Intent(Constants.SERVICE_ANSWER)
-                    intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toJsonString())
+                    val intent = Intent(
+                            Constants.SERVICE_ANSWER)
+                    intent.putExtra(
+                            Constants.SERVICE_ANSWER_SEARCH, result.toJsonString())
                     LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
                 }
                 Constants.SERVICE_CMD_SYNC_SONGS_DATA    -> {
@@ -205,7 +214,8 @@ class TJService : Service() {
                     val dataWithMetadataSelectedList = TJServiceSongsSyncData(
                             nodes.selectedList, nodes.histories)
 
-                    val intent = Intent(Constants.SERVICE_RESULT)
+                    val intent = Intent(
+                            Constants.SERVICE_RESULT)
                     intent.putExtra(
                             Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_NORMAL_LIST,
                             dataWithMetadataNormalList.toJsonString())
@@ -235,7 +245,8 @@ class TJService : Service() {
                 }
             }
             val intent = Intent(Constants.SERVICE_RESULT)
-            intent.putExtra(Constants.SERVICE_RESULT_STATUS, currentStatus.toString())
+            intent.putExtra(
+                    Constants.SERVICE_RESULT_STATUS, currentStatus.toString())
             LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
             notificationManager.notify(NOTIFICATION_ID, nodes.notification)
         }

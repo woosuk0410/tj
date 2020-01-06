@@ -12,9 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants.SERVICE_RESULT
 import com.example.android.tj.Constants.SERVICE_RESULT_STATUS
-import com.example.android.tj.Nodes.Companion.TJ_DIR_IMG
 import com.example.android.tj.R
 import com.example.android.tj.model.TJServiceStatus
+import com.example.android.tj.service.Nodes.Companion.TJ_DIR_IMG
 import java.io.File
 
 class FrameActivity : AppCompatActivity() {
