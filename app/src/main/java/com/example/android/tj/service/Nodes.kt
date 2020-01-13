@@ -94,9 +94,9 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
         }
     }
 
-    private fun forwardNode(): SongMetadata {
-        val head = currentList.first()
-        currentList = currentList.subList(1, currentList.size) + head
+    private fun forwardNode(step: Int = 1): SongMetadata {
+        val head = currentList.take(step)
+        currentList = currentList.subList(step, currentList.size) + head
         return currentList.first()
     }
 
@@ -192,9 +192,7 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
             return
         }
 
-        for (i in 0 until startIdx) {
-            forwardNode()
-        }
+        forwardNode(startIdx)
 
         if (withOneBackwardStep) {
             backwardNode()
