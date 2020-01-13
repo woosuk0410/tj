@@ -13,7 +13,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.android.tj.Constants
 import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceBroadcastReceiver
-import com.example.android.tj.activity.TJServiceUtil
+import com.example.android.tj.activity.TJServiceClientUtil
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.database.MetadataModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -23,7 +23,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
-class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver {
+class SongAttrEditFragment : Fragment(), TJServiceClientUtil, TJServiceBroadcastReceiver {
 
     private val args: SongAttrEditFragmentArgs by navArgs()
 
@@ -58,7 +58,7 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
 
         registerBroadCastReceiver(activity)
 
-        queryMetadataByHash(activity, args.hash)
+        queryMetadataByHashCmd(activity, args.hash)
 
         val navBar = activity?.findViewById<BottomNavigationView>(R.id.nav_view)
         navBar?.visibility = View.GONE
@@ -78,7 +78,7 @@ class SongAttrEditFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiv
             metadataModel.insert(newMetadata) { success ->
                 val msg = if (success) "Done" else "Failed"
                 if (success) {
-                    patchInMemoryMetadata(activity, newMetadata)
+                    patchInMemoryMetadataCmd(activity, newMetadata)
                 }
                 val snackBar = Snackbar.make(
                         root.findViewById(R.id.metadata_save_v2), msg,

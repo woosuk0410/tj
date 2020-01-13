@@ -15,7 +15,7 @@ import com.example.android.tj.activity.ui.songs.SongAttrEditFragment
 import com.example.android.tj.model.TJServiceCommand
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class MainActivityV2 : AppCompatActivity(), TJServiceUtil {
+class MainActivityV2 : AppCompatActivity(), TJServiceClientUtil {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

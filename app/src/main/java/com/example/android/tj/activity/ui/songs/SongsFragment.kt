@@ -16,12 +16,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.android.tj.Constants
 import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceBroadcastReceiver
-import com.example.android.tj.activity.TJServiceUtil
+import com.example.android.tj.activity.TJServiceClientUtil
 import com.example.android.tj.model.TJServiceSongsSyncData
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.android.synthetic.main.activity_main_v2.*
 
-class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
+class SongsFragment : Fragment(), TJServiceClientUtil, TJServiceBroadcastReceiver,
                       SearchView.OnQueryTextListener, SearchView.OnCloseListener {
 
     private lateinit var model: SongsViewModel
@@ -95,6 +95,8 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
         model.songsSyncData.observe(this, metadataListObserver)
 
         registerBroadCastReceiver(activity)
+        syncedSongsDataCmd(activity)
+
 
         val navBar = activity?.findViewById<BottomNavigationView>(R.id.nav_view)
         navBar?.visibility = View.VISIBLE
@@ -144,7 +146,7 @@ class SongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver,
     override fun onQueryTextChange(newText: String?): Boolean {
         viewMode = ViewMode.QUERY
         lastQueryText = newText
-        newText?.let { sendSearchQuery(activity, it) }
+        newText?.let { sendSearchQueryCmd(activity, it) }
 
         return true
     }

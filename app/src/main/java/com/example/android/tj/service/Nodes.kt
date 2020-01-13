@@ -1,20 +1,26 @@
 package com.example.android.tj.service
 
 import android.app.Notification
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
+import com.example.android.tj.Constants
 import com.example.android.tj.Logging
 import com.example.android.tj.database.History
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.CurrentListMode
+import com.example.android.tj.model.TJServiceSongsSyncData
+import com.example.android.tj.model.TJServiceStatus
 import com.example.android.tj.model.database.HistoryModel
 import com.example.android.tj.model.database.MetadataModel
 import com.example.android.tj.model.database.SongModel
 import com.example.android.tj.service.Contexts.singleThreadContext
+import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -22,7 +28,7 @@ import java.time.Instant
 import java.util.*
 
 
-internal class Nodes(private val tjService: TJService) : Logging {
+internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil {
 
     var normalList: List<SongMetadata> = emptyList()
     var selectedList: List<SongMetadata> = emptyList()
@@ -36,6 +42,7 @@ internal class Nodes(private val tjService: TJService) : Logging {
             } else {
                 selectedList = value
             }
+            announceBroadcast(tjService, songsSyncBroadcastIntent())
         }
     private var currentListMode: CurrentListMode = CurrentListMode.Normal
     fun switchCurrentListMode(target: CurrentListMode) {
@@ -174,10 +181,12 @@ internal class Nodes(private val tjService: TJService) : Logging {
         currentList.find { it.id == metadata.id }?.let {
             it.priority = metadata.priority
         }
+        announceBroadcast(tjService, songsSyncBroadcastIntent())
     }
 
     fun addToSelectedList(metadata: SongMetadata) {
         selectedList = selectedList + metadata
+        announceBroadcast(tjService, songsSyncBroadcastIntent())
     }
 
     @Synchronized
@@ -211,6 +220,7 @@ internal class Nodes(private val tjService: TJService) : Logging {
                                     it.data()))
                     player.prepareAsync()
                     player.recordingSong = n
+                    announceBroadcast(tjService, songsSyncBroadcastIntent())
 
                     // setOnPreparedListener and setOnPreparedListener only need to be called once
                     player.setOnPreparedListener { player ->
@@ -232,6 +242,7 @@ internal class Nodes(private val tjService: TJService) : Logging {
                                             ByteArrayMediaDataSource(it.data()))
                                     player.prepareAsync()
                                     player.recordingSong = n2
+                                    announceBroadcast(tjService, songsSyncBroadcastIntent())
                                 }
                             }
                         }
@@ -272,6 +283,55 @@ internal class Nodes(private val tjService: TJService) : Logging {
         } + history
         histories = histories + mapOf(Pair(history.id, newHistoryList))
     }
+
+    /************************* broadcast intents begin*******************************/
+    fun songsSyncBroadcastIntent(): Intent {
+        val dataWithMetadataNormalList = TJServiceSongsSyncData(normalList, histories)
+        val dataWithMetadataSelectedList = TJServiceSongsSyncData(selectedList, histories)
+        val intent = Intent(Constants.SERVICE_RESULT)
+        intent.putExtra(
+                Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_NORMAL_LIST,
+                dataWithMetadataNormalList.toJsonString())
+        intent.putExtra(
+                Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_SELECTED_LIST,
+                dataWithMetadataSelectedList.toJsonString())
+        return intent
+    }
+
+    fun playingStatusBroadcastIntent(): Intent {
+        val currentStatus: TJServiceStatus = try {
+            val duration = player.duration
+            val curPos = player.currentPosition
+            val nowPlaying = currentNode().title
+            val isPlaying = player.isPlaying
+            val md5 = currentNode().id
+            TJServiceStatus(duration, curPos, nowPlaying, isPlaying, md5)
+        } catch (e: Exception) {
+            Log.e("TJService", "Exception when generating currentStatus ${e}")
+            TJServiceStatus(0, 0, "", false, "")
+        }
+
+        val intent = Intent(Constants.SERVICE_RESULT)
+        intent.putExtra(Constants.SERVICE_RESULT_STATUS, currentStatus.toString())
+        return intent
+    }
+
+    fun searchByTitleBroadcastIntent(query: String): Intent {
+        val candidates = currentList.filter { n -> n.title.contains(query, true) }
+        val result = TJServiceSongsSyncData(candidates, histories)
+        val intent = Intent(Constants.SERVICE_ANSWER)
+        intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toJsonString())
+        return intent
+    }
+
+    fun searchByHashBroadcastIntent(hash: String): Intent {
+        val intent = Intent(Constants.SERVICE_ANSWER)
+        val metadata = getNodeByHash(hash)
+        intent.putExtra(Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
+        return intent
+    }
+
+    /************************* broadcast intents end*******************************/
 
     companion object {
 

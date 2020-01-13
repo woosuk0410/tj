@@ -9,7 +9,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.android.tj.Constants
 import com.example.android.tj.R
-import com.example.android.tj.activity.TJServiceUtil
+import com.example.android.tj.activity.TJServiceClientUtil
 import com.example.android.tj.activity.ui.songs.selected.SelectedSongsFragmentDirections
 import com.example.android.tj.model.CurrentListMode
 import com.example.android.tj.model.TJServiceCommand
@@ -27,7 +27,7 @@ class SongsListAdapter(
         private val viewManager: RecyclerView.LayoutManager,
         private val syncData: TJServiceSongsSyncData,
         private val targetListMode: CurrentListMode = CurrentListMode.Normal) :
-        RecyclerView.Adapter<SongsListAdapter.SongsListViewHolder>(), TJServiceUtil {
+        RecyclerView.Adapter<SongsListAdapter.SongsListViewHolder>(), TJServiceClientUtil {
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -82,7 +82,7 @@ class SongsListAdapter(
                 sendCmdToTJService(
                         fragment.activity, TJServiceCommand(
                         Constants.SERVICE_CMD_SWITCH_TARGET_LIST, targetListMode.value))
-                playFromHash(fragment.activity, song.id)
+                playFromHashCmd(fragment.activity, song.id)
                 viewManager.scrollToPosition(0)
             }
         }
@@ -101,7 +101,7 @@ class SongsListAdapter(
 
         holder.selectButton.setOnClickListener {
             run {
-                addToSelectedList(fragment.activity, song)
+                addToSelectedListCmd(fragment.activity, song)
                 val snackBar = Snackbar.make(it, "adding ${song.title}...", Snackbar.LENGTH_SHORT)
                 snackBar.show()
             }

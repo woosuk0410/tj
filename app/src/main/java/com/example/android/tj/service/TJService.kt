@@ -14,8 +14,6 @@ import android.os.*
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.android.tj.Constants
 import com.example.android.tj.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.android.tj.Constants.NOTIFICATION_ID
@@ -23,11 +21,9 @@ import com.example.android.tj.Constants.SERVICE_CMD
 import com.example.android.tj.database.SongMetadata
 import com.example.android.tj.model.CurrentListMode
 import com.example.android.tj.model.TJServiceCommand
-import com.example.android.tj.model.TJServiceSongsSyncData
-import com.example.android.tj.model.TJServiceStatus
 import com.google.gson.Gson
 
-class TJService : Service() {
+class TJService : Service(), TJServiceUtil {
 
     private lateinit var nodes: Nodes
     private lateinit var receiver: BroadcastReceiver
@@ -36,22 +32,6 @@ class TJService : Service() {
 
     private lateinit var serviceHandler: ServiceHandler
     private lateinit var mediaMetadataHandler: Handler
-
-    private val currentStatus: TJServiceStatus
-        get() {
-            return try {
-                val duration = Nodes.player.duration
-                val curPos = Nodes.player.currentPosition
-                val nowPlaying = nodes.currentNode().title
-                val isPlaying = Nodes.player.isPlaying
-                val md5 = nodes.currentNode().id
-                TJServiceStatus(duration, curPos, nowPlaying, isPlaying, md5)
-            } catch (e: Exception) {
-                Log.e("TJService", "Exception when generating currentStatus ${e}")
-                TJServiceStatus(0, 0, "", false, "")
-            }
-
-        }
 
     private fun initNotificationManager() {
         val channelName = "TJService"
@@ -144,11 +124,6 @@ class TJService : Service() {
         }, 5000)
     }
 
-    private fun getSearchResult(query: String): TJServiceSongsSyncData {
-        val candidates = nodes.currentList.filter { n -> n.title.contains(query, true) }
-        return TJServiceSongsSyncData(candidates, nodes.histories)
-    }
-
     override fun onCreate() {
         super.onCreate()
 
@@ -187,12 +162,8 @@ class TJService : Service() {
                     nodes.playFromTop()
                 }
                 Constants.SERVICE_QUERY_METADATA_BY_HASH -> {
-                    val intent = Intent(
-                            Constants.SERVICE_ANSWER)
-                    val metadata = nodes.getNodeByHash(msg.obj as String)
-                    intent.putExtra(
-                            Constants.SERVICE_ANSWER_METADATA, Gson().toJson(metadata))
-                    LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
+                    announceBroadcast(
+                            this@TJService, nodes.searchByHashBroadcastIntent(msg.obj as String))
                 }
                 Constants.SERVICE_PATCH_METADATA         -> {
                     nodes.updateMetadata(msg.obj as SongMetadata)
@@ -201,31 +172,16 @@ class TJService : Service() {
                     nodes.addToSelectedList(msg.obj as SongMetadata)
                 }
                 Constants.SERVICE_QUERY_SEARCH           -> {
-                    val result = getSearchResult(msg.obj as String)
-                    val intent = Intent(
-                            Constants.SERVICE_ANSWER)
-                    intent.putExtra(
-                            Constants.SERVICE_ANSWER_SEARCH, result.toJsonString())
-                    LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
+                    announceBroadcast(
+                            this@TJService,
+                            nodes.searchByTitleBroadcastIntent(msg.obj as String))
                 }
                 Constants.SERVICE_CMD_SYNC_SONGS_DATA    -> {
-                    val dataWithMetadataNormalList = TJServiceSongsSyncData(
-                            nodes.normalList, nodes.histories)
-                    val dataWithMetadataSelectedList = TJServiceSongsSyncData(
-                            nodes.selectedList, nodes.histories)
-
-                    val intent = Intent(
-                            Constants.SERVICE_RESULT)
-                    intent.putExtra(
-                            Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_NORMAL_LIST,
-                            dataWithMetadataNormalList.toJsonString())
-                    intent.putExtra(
-                            Constants.SERVICE_RESULT_SONGS_DATA_WITH_METADATA_SELECTED_LIST,
-                            dataWithMetadataSelectedList.toJsonString())
-                    LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
+                    announceBroadcast(this@TJService, nodes.songsSyncBroadcastIntent())
                 }
                 Constants.SERVICE_CLEAR_SELECTED_LIST    -> {
                     nodes.selectedList = emptyList()
+                    announceBroadcast(this@TJService, nodes.songsSyncBroadcastIntent())
                 }
                 Constants.SERVICE_CMD_SWITCH_TARGET_LIST -> {
                     val targetMode = when (msg.arg1) {
@@ -244,10 +200,7 @@ class TJService : Service() {
                 else                                     -> {
                 }
             }
-            val intent = Intent(Constants.SERVICE_RESULT)
-            intent.putExtra(
-                    Constants.SERVICE_RESULT_STATUS, currentStatus.toString())
-            LocalBroadcastManager.getInstance(this@TJService).sendBroadcast(intent)
+            announceBroadcast(this@TJService, nodes.playingStatusBroadcastIntent())
             notificationManager.notify(NOTIFICATION_ID, nodes.notification)
         }
     }

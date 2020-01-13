@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.android.tj.Constants
 import com.example.android.tj.R
 import com.example.android.tj.activity.TJServiceBroadcastReceiver
-import com.example.android.tj.activity.TJServiceUtil
+import com.example.android.tj.activity.TJServiceClientUtil
 import com.example.android.tj.activity.ui.songs.SongsListAdapter
 import com.example.android.tj.activity.ui.songs.SongsViewModel
 import com.example.android.tj.model.CurrentListMode
@@ -23,7 +23,7 @@ import com.example.android.tj.model.TJServiceSongsSyncData
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 //TODO: de-duplicate with SongsFragment
-class SelectedSongsFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver {
+class SelectedSongsFragment : Fragment(), TJServiceClientUtil, TJServiceBroadcastReceiver {
 
     private lateinit var model: SongsViewModel
     private lateinit var recyclerView: RecyclerView

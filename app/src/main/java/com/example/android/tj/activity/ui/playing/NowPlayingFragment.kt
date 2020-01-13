@@ -17,11 +17,11 @@ import com.example.android.tj.Constants
 import com.example.android.tj.R
 import com.example.android.tj.activity.FrameActivity
 import com.example.android.tj.activity.TJServiceBroadcastReceiver
-import com.example.android.tj.activity.TJServiceUtil
+import com.example.android.tj.activity.TJServiceClientUtil
 import com.example.android.tj.model.TJServiceCommand
 import com.example.android.tj.model.TJServiceStatus
 
-class NowPlayingFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver {
+class NowPlayingFragment : Fragment(), TJServiceClientUtil, TJServiceBroadcastReceiver {
 
     private lateinit var homeViewModel: NowPlayingViewModel
 
@@ -34,8 +34,7 @@ class NowPlayingFragment : Fragment(), TJServiceUtil, TJServiceBroadcastReceiver
     private val uiUpdateCallback = object : Runnable {
         override fun run() {
             val syncCmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC)
-            val syncMetadataCmd = TJServiceCommand(Constants.SERVICE_CMD_SYNC_SONGS_DATA)
-            sendCmdToTJService(activity, syncCmd, syncMetadataCmd)
+            sendCmdToTJService(activity, syncCmd)
             handler.postDelayed(this, 1000)
         }
     }
