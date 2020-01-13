@@ -310,6 +310,7 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
 
     fun searchByTitleBroadcastIntent(query: String): Intent {
         val candidates = currentList.filter { n -> n.title.contains(query, true) }
+                .sortedBy { song -> -song.priority }
         val result = TJServiceSongsSyncData(candidates, histories)
         val intent = Intent(Constants.SERVICE_ANSWER)
         intent.putExtra(Constants.SERVICE_ANSWER_SEARCH, result.toJsonString())
