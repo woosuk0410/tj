@@ -50,7 +50,7 @@ class TJNotification internal constructor(
                     )
                     .setSmallIcon(
                             R.drawable.ic_music_note_black_24dp)
-                    .setContentTitle(nodes.last?.title)
+                    .setContentTitle(nodes.currentNode().title)
                     .setLargeIcon(bitmap)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setContentIntent(pendingIntent)

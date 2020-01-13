@@ -60,15 +60,12 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
 
     var hasStarted = false // if the player finished loading the 1st resource
 
-    val last: SongMetadata?
-        get() = currentList.lastOrNull()
-
     val notification: Notification
         get() = tjNotification.notification
 
     val bitMap: Bitmap
         get() {
-            var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj2.png")
+            var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj4.jpg")
 
             if (currentList.isNotEmpty()) {
                 val hash = currentNode().id
