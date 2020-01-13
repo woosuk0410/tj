@@ -210,9 +210,7 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
                 song?.let {
                     PlayerSemaphore.lock.acquire()
                     player.reset()
-                    player.setDataSource(
-                            ByteArrayMediaDataSource(
-                                    it.data()))
+                    player.setDataSource(ByteArrayMediaDataSource(it.data()))
                     player.prepareAsync()
                     player.recordingSong = n
                     announceBroadcast(tjService, songsSyncBroadcastIntent())
@@ -233,8 +231,7 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
                                 songOp?.let { it ->
                                     PlayerSemaphore.lock.acquire()
                                     player.reset()
-                                    player.setDataSource(
-                                            ByteArrayMediaDataSource(it.data()))
+                                    player.setDataSource(ByteArrayMediaDataSource(it.data()))
                                     player.prepareAsync()
                                     player.recordingSong = n2
                                     announceBroadcast(tjService, songsSyncBroadcastIntent())
