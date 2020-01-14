@@ -65,7 +65,7 @@ internal class Nodes(private val tjService: TJService) : Logging, TJServiceUtil 
 
     val bitMap: Bitmap
         get() {
-            var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj4.jpg")
+            var bitmap = BitmapFactory.decodeFile("$TJ_DIR_IMG/tj5.jpg")
 
             if (currentList.isNotEmpty()) {
                 val hash = currentNode().id

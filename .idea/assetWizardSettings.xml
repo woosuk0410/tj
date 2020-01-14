@@ -148,8 +148,8 @@
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
                                       <entry key="iconShape" value="CIRCLE" />
-                                      <entry key="imageAsset" value="$USER_HOME$/dev/tj_launcher_round_v2.jpg" />
-                                      <entry key="outputName" value="ic_launcher_round_v2" />
+                                      <entry key="imageAsset" value="$USER_HOME$/dev/tj_launcher_round_v3.jpg" />
+                                      <entry key="outputName" value="ic_launcher_round_v3" />
                                     </map>
                                   </option>
                                 </PersistentState>
